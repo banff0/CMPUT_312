@@ -1,0 +1,5 @@
+# to connect to the robot:
+    ssh robot@ev3dev
+    password: maker
+
+# 
