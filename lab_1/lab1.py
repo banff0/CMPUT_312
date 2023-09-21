@@ -5,7 +5,7 @@ from ev3dev2.motor import LargeMotor, OUTPUT_D, OUTPUT_B, SpeedPercent, MoveTank
 from ev3dev2.sensor import INPUT_1, INPUT_2, INPUT_3, INPUT_4
 from ev3dev2.sensor.lego import UltrasonicSensor, ColorSensor, GyroSensor
 
-from math import pi, cos, sin
+from math import pi, cos, sin, radians, degrees
 # import numpy as np
 
 
@@ -36,12 +36,12 @@ r_light = ColorSensor(INPUT_1)
 
 
 
-# s_dist = ultra_sens.distance_centimeters_continuous
-# s_deg = gryro_sens.angle
-# for i in range(3):
-#     drive.on_for_rotations(80, -80, 1)
-#     print(s_dist - ultra_sens.distance_centimeters_continuous, gryro_sens.angle)
-#     sleep(1)
+s_dist = ultra_sens.distance_centimeters_continuous
+s_deg = gryro_sens.angle
+for i in range(3):
+    drive.on_for_rotations(-22, -20, 1)
+    print(s_dist - ultra_sens.distance_centimeters_continuous, gryro_sens.angle)
+    sleep(10)
 
 
 
@@ -84,7 +84,7 @@ def kin(cmds):
     r_rot = 0
     l_rot = 0
 
-    sub_steps = 1
+    sub_steps = 4
 
     for cmd in cmds:
         p1, p2, t = cmd
@@ -127,6 +127,77 @@ def kin(cmds):
             # sleep(5)
             print(x, y, theta)
 
+def kin_firas(cmds):
+    # features of the robot
+    r = 5.5  # diameter NOT radius
+    l = 18    # l is equivalent to 2d in lab notes
+    # start the robot at the origin, facing up
+    x = 0
+    y = 0
+    
+    tr_rot = 0
+    tl_rot = 0
+    r_rot = 0
+    l_rot = 0
+
+    sub_steps = 4
+
+    for cmd in cmds:
+        p1, p2, t = cmd
+        omega_agg = 0
+        last_position = [0, 0]
+        for i in range(t*sub_steps):
+            tr_rot = -mtr_d.position
+            tl_rot = -mtr_b.position
+            time_per_step = t/sub_steps
+            drive.on_for_seconds(-p1, -p2, time_per_step, brake=False)
+            # print(-mtr_b.position, -mtr_d.position)
+            #print(-mtr_d.position, tr_rot, mtr_d.count_per_rot)
+            # Number of rotations for left and right wheel respectively
+            l_rot = (-mtr_b.position - tl_rot) / mtr_b.count_per_rot 
+            r_rot = (-mtr_d.position - tr_rot) / mtr_d.count_per_rot  
+
+            # phi1 and phi2 below are the distances covered by the left and right wheels
+            # respectively. We can consider this distance to be the velocity of the
+            # wheels, in cm/s, if and only if our time steps are 1 second long
+            phi1 = (pi * r * l_rot)
+            phi2 = (pi * r * r_rot)
+
+            # linear velocity of the wheel (cm/s), since linear_v = angular_v * radius = omega * 5.5/2
+            # when dt == 1, phi1 == phi1_mod and phi2 == phi2_mod
+            #phi1_mod = radians(-mtr_b.position - tl_rot) * r/2
+            #phi2_mod = radians(-mtr_d.position - tr_rot) * r/2
+
+            print(phi1, phi2)
+            #print(phi1_mod, phi2_mod)
+            # from lab notes
+            if phi2 == phi1:
+                final_position = [phi1*time_per_step + last_position[0], last_position[1]]
+                print(final_position)
+                last_position = final_position
+            else:
+                omega = (phi2 - phi1) / l
+                radius_of_curvature = (l/2) * ((phi2 + phi1) / (phi2 - phi1))
+                v = radius_of_curvature*omega
+                omega_agg += omega
+                print(degrees(omega), degrees(omega_agg))
+
+                
+                final_position = [v*cos(omega_agg) + last_position[0], v*sin(omega_agg) + last_position[1]]
+                # Velocity is always in the x-direction
+                #translation = [final_position[i]-initial_position[i] for i in range(2)]
+                #translation[0] += (radius_of_curvature - radius_of_curvature*cos(omega)) + v*cos(omega)
+                #translation[1] += -(radius_of_curvature*sin(omega)) + v*sin(omega)
+                print(last_position)
+                print(final_position)
+                last_position = final_position
+                #print(translation)
+            #initial_position = final_position
+
+            
+
+
+
 def brait(behave):
     while True:
             r_bright = r_light.ambient_light_intensity
@@ -146,10 +217,13 @@ def brait(behave):
 
 # move_shape("l")
 
-# kin(
-#     [[80, 60, 2],
-#      [60, 60, 1],
-#      [-50, 80, 2]]
-# )
+'''kin_firas(
+    [
+      #[0, 40, 2],
+      #[80, 60, 2],
+      #[60, 60, 1],
+      #[-50, 80, 2]
+    ]
+)'''
 
-brait("cower")
+#brait("cower")
