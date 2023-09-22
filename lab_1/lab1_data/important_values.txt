@@ -1,0 +1,3 @@
+Distance from wheels to center: 9 cm
+Wheel Diameter: 5.5 cm
+
