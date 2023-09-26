@@ -28,6 +28,9 @@ CMPUT 312 collaboration policy.
 """
 
 from ev3dev2.motor import LargeMotor, OUTPUT_D, OUTPUT_B
+
+from ev3dev2.sensor import INPUT_1 
+from ev3dev2.sensor.lego import TouchSensor
 from ev3dev2.button import Button
 from math import cos, sin, radians
 from time import sleep
@@ -61,10 +64,32 @@ def get_euclidean(x1, y1, x2, y2):
     # print(x1, x2, y1, y2) 
     return sqrt((x2 - x1)**2 + (y2 - y1)**2)
 
-Button.on_up = lambda x: points.append(calculate_coordinates)
+def get_dist():
+    points = []
+    btn.wait_for_pressed()
+    print("CLICKED")
+    points.append(calculate_coordinates(l1, l2, first_motor.position, second_motor.position))
+    btn.wait_for_released()
+    btn.wait_for_pressed()
+    print("CLICKED")
+    points.append(calculate_coordinates(l1, l2, first_motor.position, second_motor.position))
+    print(points)
+    print(get_euclidean(*points[0], *points[1]))
+    points = []
+
+
+print("RUNNING...")
+
+points = []
+
+# Button.on_up = lambda x: points.append(calculate_coordinates(l1, l2, first_motor.position, second_motor.position))
+Button.on_up = lambda x: print("CLICKED")
 
 first_motor = ArmMotor(OUTPUT_D)
 second_motor = ArmMotor(OUTPUT_B)
+btn = TouchSensor(INPUT_1)
+
+# btn.wait_for_released()
 
 l1 = 11
 l2 = 7
@@ -86,7 +111,18 @@ l2 = 7
 # sleep(5)
 # c2 = calculate_coordinates(l1, l2, first_motor.position, second_motor.position)
 
-print(get_euclidean(*c1, *c2))
+# print("RUNNING...")
+# while True:
+#     btn.wait_for_released()
+#     print("hi")
+#     if len(points) == 2:
+#         print(get_euclidean(*points))
+#         points = []
+#         break
+
+get_dist()
+
+print(points)
 
 # print(first_motor, second_motor)
 # print(c2 - c1)
