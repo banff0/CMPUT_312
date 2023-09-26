@@ -56,7 +56,7 @@ def calculate_coordinates(l1, l2, theta1, theta2):
     y = l1*sin(theta1) + l2*sin(theta1+theta2)
     return [x, y]
 
-Button.on_up = lambda x: points.append(calculate_coordinates)
+Button.on_up = lambda x: points.append(calculate_coordinates(l1, l2, first_motor.agg_theta, second_motor.agg_theta))
 
 first_motor = ArmMotor(OUTPUT_D)
 second_motor = ArmMotor(OUTPUT_B)
