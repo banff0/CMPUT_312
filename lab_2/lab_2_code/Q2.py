@@ -30,6 +30,7 @@ CMPUT 312 collaboration policy.
 from ev3dev2.motor import LargeMotor, OUTPUT_D, OUTPUT_B
 from math import cos, sin, radians
 from time import sleep
+from math import sqrt
 
 # All length units are in cm, all angles are in degrees
 
@@ -55,6 +56,10 @@ def calculate_coordinates(l1, l2, theta1, theta2):
     y = l1*sin(theta1) + l2*sin(theta1+theta2)
     return [x, y]
 
+def get_euclidean(x1, y1, x2, y2):
+    # print(x1, x2, y1, y2) 
+    return sqrt((x2 - x1)**2 + (y2 - y1)**2)
+
 
 first_motor = ArmMotor(OUTPUT_D)
 second_motor = ArmMotor(OUTPUT_B)
@@ -72,10 +77,17 @@ l2 = 7
 # second_motor.move_angle(90)
 # first_motor.move_angle(-90)
 
-
+print("get c1")
 sleep(5)
-print(first_motor, second_motor)
-print(calculate_coordinates(l1, l2, first_motor.agg_theta, second_motor.agg_theta))
+c1 = calculate_coordinates(l1, l2, first_motor.position, second_motor.position)
+print("get c2")
+sleep(5)
+c2 = calculate_coordinates(l1, l2, first_motor.position, second_motor.position)
+
+print(get_euclidean(*c1, *c2))
+
+# print(first_motor, second_motor)
+# print(c2 - c1)
 
 
 input()
