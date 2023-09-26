@@ -28,6 +28,7 @@ CMPUT 312 collaboration policy.
 """
 
 from ev3dev2.motor import LargeMotor, OUTPUT_D, OUTPUT_B
+from ev3dev2.button import Button
 from math import cos, sin, radians
 from time import sleep
 
@@ -55,6 +56,7 @@ def calculate_coordinates(l1, l2, theta1, theta2):
     y = l1*sin(theta1) + l2*sin(theta1+theta2)
     return [x, y]
 
+Button.on_up = lambda x: points.append(calculate_coordinates)
 
 first_motor = ArmMotor(OUTPUT_D)
 second_motor = ArmMotor(OUTPUT_B)
@@ -82,4 +84,4 @@ input()
 first_motor.reset()
 second_motor.reset()
 
-
+points = []
