@@ -28,6 +28,7 @@ CMPUT 312 collaboration policy.
 """
 
 from ev3dev2.motor import LargeMotor, OUTPUT_D, OUTPUT_B
+from ev3dev2.button import Button
 from math import cos, sin, radians
 from time import sleep
 from math import sqrt
@@ -60,6 +61,7 @@ def get_euclidean(x1, y1, x2, y2):
     # print(x1, x2, y1, y2) 
     return sqrt((x2 - x1)**2 + (y2 - y1)**2)
 
+Button.on_up = lambda x: points.append(calculate_coordinates)
 
 first_motor = ArmMotor(OUTPUT_D)
 second_motor = ArmMotor(OUTPUT_B)
@@ -77,12 +79,12 @@ l2 = 7
 # second_motor.move_angle(90)
 # first_motor.move_angle(-90)
 
-print("get c1")
-sleep(5)
-c1 = calculate_coordinates(l1, l2, first_motor.position, second_motor.position)
-print("get c2")
-sleep(5)
-c2 = calculate_coordinates(l1, l2, first_motor.position, second_motor.position)
+# print("get c1")
+# sleep(5)
+# c1 = calculate_coordinates(l1, l2, first_motor.position, second_motor.position)
+# print("get c2")
+# sleep(5)
+# c2 = calculate_coordinates(l1, l2, first_motor.position, second_motor.position)
 
 print(get_euclidean(*c1, *c2))
 
@@ -94,4 +96,4 @@ input()
 first_motor.reset()
 second_motor.reset()
 
-
+points = []
