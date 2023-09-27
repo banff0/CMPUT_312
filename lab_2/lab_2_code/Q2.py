@@ -34,7 +34,7 @@ from ev3dev2.sensor.lego import TouchSensor
 from ev3dev2.button import Button
 from math import cos, sin, radians
 from time import sleep
-from math import sqrt
+from math import sqrt, acos
 
 # All length units are in cm, all angles are in degrees
 
@@ -60,21 +60,52 @@ def calculate_coordinates(l1, l2, theta1, theta2):
     y = l1*sin(theta1) + l2*sin(theta1+theta2)
     return [x, y]
 
-def get_euclidean(x1, y1, x2, y2):
-    # print(x1, x2, y1, y2) 
-    return sqrt((x2 - x1)**2 + (y2 - y1)**2)
+def norm(v):
+    x, y = v
+    return sqrt(x**2 + y**2)
+
+def get_vector(p1, p2):
+    # Returns the vector equivalent to p2 - p1
+    x1, y1, x2, y2 = p1, p2
+    return [x2-x1, y2-y1]
+
+def get_euclidean(p1, p2):
+    # Euclidean == norm(p2-p1) 
+    v = get_vector(p1, p2)
+    return norm(v)
+
+def dot_product(v1, v2):
+    x1, y1, x2, y2 = v1, v2
+    return x1*x2 + y1*y2
+
+def calculate_angle(p1, p2, p3):
+    v1 = get_vector(p1, p2)
+    v2 = get_vector(p1, p3)
+    return acos(dot_product(v1, v2)/(norm(v1)*norm(v2)))
+
+def get_points(num_points):
+    # Should be able to get an arbitrary number of points now
+    points = []
+    for _ in range(num_points):
+        btn.wait_for_pressed()
+        print("CLICKED")
+        points.append(calculate_coordinates(l1, l2, first_motor.position, second_motor.position))
+        #### Check if required
+        btn.wait_for_released()
+        print(points)
+    return points
 
 def get_dist():
+    points = get_points(2)
+    print(get_euclidean(points[0], points[1]))
+    ##### Check if required
     points = []
-    btn.wait_for_pressed()
-    print("CLICKED")
-    points.append(calculate_coordinates(l1, l2, first_motor.position, second_motor.position))
-    btn.wait_for_released()
-    btn.wait_for_pressed()
-    print("CLICKED")
-    points.append(calculate_coordinates(l1, l2, first_motor.position, second_motor.position))
-    print(points)
-    print(get_euclidean(*points[0], *points[1]))
+
+def get_angle():
+    # points[0] is the intersection point
+    points = get_points(3)
+    print(get_angle(*points))
+    ##### Check if required
     points = []
 
 
@@ -83,7 +114,7 @@ print("RUNNING...")
 points = []
 
 # Button.on_up = lambda x: points.append(calculate_coordinates(l1, l2, first_motor.position, second_motor.position))
-Button.on_up = lambda x: print("CLICKED")
+# Button.on_up = lambda x: print("CLICKED")
 
 first_motor = ArmMotor(OUTPUT_D)
 second_motor = ArmMotor(OUTPUT_B)
@@ -120,7 +151,8 @@ l2 = 7
 #         points = []
 #         break
 
-get_dist()
+#get_dist()
+#get_angle()
 
 print(points)
 
