@@ -59,8 +59,8 @@ class ArmMotor(LargeMotor):
         return str(self.calibrated_position())
 
 def calculate_coordinates(theta1, theta2):
-    l1 = 7
-    l2 = 11
+    l1 = 11
+    l2 = 7
 
     theta1, theta2 = radians(theta1), radians(theta2)
     x = l1*cos(theta1) + l2*cos(theta1+theta2)
@@ -127,14 +127,14 @@ second_motor = ArmMotor(OUTPUT_B)
 btn = TouchSensor(INPUT_1)
 
 try:
-    #get_dist()
-    #get_angle()
+    # get_dist()
+    get_angle()
 
-    print(first_motor, second_motor)
+    # print(first_motor, second_motor)
 
-    move(32, 60)
+    # move(32, 60)
 
-    print(first_motor, second_motor)
+    # print(first_motor, second_motor)
     # print(c2 - c1)
 except Exception:
     traceback.print_exc()

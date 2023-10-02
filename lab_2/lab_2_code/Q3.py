@@ -81,7 +81,11 @@ def inverse_kin_analytical(x, y):
     theta2 = acos((x**2 + y**2 - l1**2 - l2**2) / (2*l1*l2))
     theta2_options = [theta2, -theta2]
 
-    theta1_options = [asin((l2*sin(t2))/sqrt(x**2 + y**2)) + (atan2(y, x)) for t2 in theta2_options]
+    ftheta1_options = [asin((l2*sin(t2))/sqrt(x**2 + y**2)) + (atan2(y, x)) for t2 in theta2_options]
+
+    theta1_options = [atan2(y, x) - atan2(l2 * sin(theta2_i), l1 + l2 * cos(theta2_i)) for theta2_i in theta2_options]
+
+    print("Frias sol: {}, Jasper sol: {}".format(ftheta1_options, theta1_options))
 
     min_euclidean = 100  # Euclidian distance between calculated_point and true_point
     best_thetas = []
@@ -96,29 +100,102 @@ def inverse_kin_analytical(x, y):
 
     return best_thetas  #[theta1, -theta2]
 
-def inverse_kin_numerical(x, y):
+def newtons(x, y, theta1, theta2):
     theta1, theta2 = 0, 0
 
     # Using Newton's method
     # Initializing vectors
-    pos = [0, 0]
-    J = [[0,0],[0,0]]
+    J = [[0,0],[0,0]]    
     
-    # x-coordinate
-    pos[0] = l1*cos(theta1) + l2*cos(theta1+theta2)
-    # y-coordinate
-    pos[1] = l1*sin(theta1) + l2*sin(theta1+theta2)
     
-    # Partial derivative of f1 with respect to theta1
-    J[0][0] = -l1*sin(theta1)-l2*sin(theta1+theta2)
-    # Partial derivative of f1 with respect to theta2
-    J[0][1] = -l2*sin(theta1+theta2)
-    # Partial derivative of f2 with respect to theta1
-    J[1][0] = l1*cos(theta1)+l2*cos(theta1+theta2)
-    # Partial derivative of f2 with respect to theta2
-    J[1][1] = l2*cos(theta1+theta2)
+    for angle in range(1, 90):
+        for j in range(2):
+            if j == 0:
+                theta1 = radians(angle)
+                theta2 = radians(angle)
+            else:
+                theta1 = radians(-angle)
+                theta2 = radians(-angle)
+            x_dist = 100
+            y_dist = 100
+            prev_theta1 = 100
+            prev_theta2 = 100
+            idx = 0
+            # while abs(x_dist) > 0.5 or abs(y_dist) > 0.5 and i < 10:
+            while round(prev_theta1, 4) != round(theta1, 4) and round(prev_theta2, 4) != round(theta2, 4) and idx < 100:
+                # Partial derivative of f1 with respect to theta1
+                J[0][0] = -l1*sin(theta1)-l2*sin(theta1+theta2)
+                # Partial derivative of f1 with respect to theta2
+                J[0][1] = -l2*sin(theta1+theta2)
+                # Partial derivative of f2 with respect to theta1
+                J[1][0] = l1*cos(theta1)+l2*cos(theta1+theta2)
+                # Partial derivative of f2 with respect to theta2
+                J[1][1] = l2*cos(theta1+theta2)
+                det = (J[0][0] * J[1][1]) - (J[0][1] * J[1][0])
 
-    return [theta1, theta2]
+                inv_J = [[J[1][1], -J[0][1]],
+                        [-J[1][0], J[0][0]]]
+                for i in range(2):
+                    inv_J[i][0] /= det
+                    inv_J[i][1] /= det
+
+                # f(r)
+                pos = calculate_coordinates(theta1, theta2)
+                # W - f(r)
+                x_dist = x - pos[0]
+                y_dist = y - pos[1]
+
+                x_dot = (-l1 * sin(prev_theta1) - l2 * sin(prev_theta1 + prev_theta2) * theta1) - (l2 * sin(prev_theta1 + prev_theta2) * theta2)
+                y_dot = (l1 * cos(prev_theta1) + l2 * cos(prev_theta1 + prev_theta2) * theta1) + (l2 * cos(prev_theta1 + prev_theta2) * theta2)
+
+                # x_dot = -(l1 * sin(prev_theta1) * theta1) - (l2 * sin(prev_theta1 + prev_theta2) * (theta1 + theta2))
+                # y_dot = (l1 * cos(prev_theta1) * theta1) + (l2 * cos(prev_theta1 + prev_theta2) * (theta1 + theta2))
+
+                print("distances", x_dist, y_dist)
+
+                # dr = [(J[1][1] / det) * x_dot - (J[0][1] / det) * y_dot, 
+                #       (J[1][0] / det) * x_dot + (J[0][0] / det) * y_dot]
+                
+                # dr = [(cos(theta1 + theta2) / l1 * sin(theta2)) * x_dist + (sin(theta1 + theta2) / l1 * sin(theta2)) * y_dist, 
+                #       -(l1 * cos(theta1) + l2 * cos(theta1 + theta2) / l1 * l2 * sin(theta2)) * x_dist + 
+                #       (-l1 * sin(theta1) - l2 * sin(theta1 + theta2) / l1 * l2 * sin(theta2)) * y_dist]
+                
+                dr = [inv_J[0][0] * x_dist - inv_J[0][1] * y_dist, 
+                    inv_J[1][0] * x_dist + inv_J[1][1] * y_dist]
+
+                prev_theta1 = theta1
+                prev_theta2 = theta2
+                theta1 += dr[0]
+                theta2 += dr[1]
+                print("thetas", degrees(theta1), degrees(theta2))
+                idx += 1
+        if idx < 100:
+            print("starting theta: ", angle, idx)
+            print("distances", x_dist, y_dist)
+            while degrees(abs(theta1)) > 90:
+                theta1 -= pi * (theta1 / abs(theta1))
+                print(degrees(theta1), pi * (theta1 / abs(theta1)))
+            while degrees(abs(theta2)) > 90:
+                theta2 -= pi * (theta2 / abs(theta2))
+                print(degrees(theta2),  pi * (theta2 / abs(theta2)))
+            return [theta1, theta2]
+    return [0, 0]
+
+def inverse_kin_numerical(x, y):
+    x_init, y_init = 0, 0
+
+    tot_x_dist = abs(x - x_init)
+    tot_y_dist = abs(y - y_init)
+
+    x_step = tot_x_dist / 10
+    y_step = tot_y_dist / 10
+
+    for step in range(1, 11):
+        print(x_step * step)
+        
+    # return newtons(x, y, 0, 0)
+
+    
 
 def move_to_position(x, y, solution_type):
     if solution_type.lower() == "a":
@@ -142,19 +219,21 @@ btn = TouchSensor(INPUT_1)
 
 try:
     global l1, l2
-    l1 = 7
-    l2 = 11
+    l1 = 11
+    l2 = 7
 
     print("First Motor Initial: {}, Second Motor Initial: {}".format(first_motor.calibrated_position(), second_motor.calibrated_position()))
 
     # Starting Position: (18, 0)
-    x = 2
-    y = 16
+    x = 16
+    y = 3
 
-    theta1, theta2 = move_to_position(x, y, "a")
+    # theta1, theta2 = move_to_position(x, y, "a")
+    theta1, theta2 = move_to_position(x, y, "n")
     print("theta1 = {}, theta2 = {}".format(degrees(theta1), degrees(theta2)))  # Move to (x,y) position using analytical solution
     print("First Motor Pos: {}, Second Motor Pos: {}".format(first_motor, second_motor))
     print((l1*cos(theta1)+l2*cos(theta1+theta2), l1*sin(theta1)+l2*sin(theta1+theta2)))
+    print('robot thinks it is at: ', calculate_coordinates(theta1, theta2))
     #move_to_position(x, y, "n")  # Move to (x,y) position using numerical solution
 
     #first_motor.move_angle(20)
