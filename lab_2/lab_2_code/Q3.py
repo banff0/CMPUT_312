@@ -36,6 +36,8 @@ from ev3dev2.button import Button
 from math import cos, sin, radians, degrees, sqrt, acos, asin, atan2, pi
 from time import sleep
 
+# from Q2 import calculate_coordinates
+
 import traceback  # For printing exceptions using traceback.print_exc(), should any arise
 
 # All length units are in cm, all angles are in degrees
@@ -45,7 +47,7 @@ class ArmMotor(LargeMotor):
         super(ArmMotor, self).__init__(OUTPUT)
         self.initial_pos = self.position
         self.STOP_ACTION_HOLD = "brake" # make it so that the motors can be moved by hand
-
+        
     def move_angle(self, theta, spd=10):
         self.on_for_degrees(spd, theta)
 
@@ -85,7 +87,7 @@ def inverse_kin_analytical(x, y):
 
     theta1_options = [atan2(y, x) - atan2(l2 * sin(theta2_i), l1 + l2 * cos(theta2_i)) for theta2_i in theta2_options]
 
-    print("Frias sol: {}, Jasper sol: {}".format(ftheta1_options, theta1_options))
+    # print("Firas sol: {}, Jasper sol: {}".format(ftheta1_options, theta1_options))
 
     min_euclidean = 100  # Euclidian distance between calculated_point and true_point
     best_thetas = []
@@ -100,7 +102,8 @@ def inverse_kin_analytical(x, y):
 
     return best_thetas  #[theta1, -theta2]
 
-def newtons(x, y, theta1, theta2):
+def newtons(x, y):
+    theta1, theta2 = first_motor.calibrated_position(), second_motor.calibrated_position()
     init_theta1, init_theta2 = theta1, theta2
 
     # Using Newton's method
@@ -184,8 +187,8 @@ def newtons(x, y, theta1, theta2):
     return [init_theta1, init_theta2]
 
 def inverse_kin_numerical(x, y):
-    x_init, y_init = 18, 0
     theta1, theta2 = 0, 0
+    x_init, y_init = calculate_coordinates(radians(theta1), radians(theta2))
 
     tot_x_dist = x - x_init
     tot_y_dist = y - y_init
@@ -198,7 +201,7 @@ def inverse_kin_numerical(x, y):
         print(x_init + x_step * step)
         print(y_init + y_step * step)
 
-        theta1, theta2 = newtons(x_init + x_step * step, y_init + y_step * step, theta1, theta2)
+        theta1, theta2 = newtons(x_init + x_step * step, y_init + y_step * step)
 
     # theta1, theta2 = newtons(x, y, 0, 0)
     
@@ -209,8 +212,6 @@ def inverse_kin_numerical(x, y):
 
     # return newtons(x, y, 0, 0)
 
-    
-
 def move_to_position(x, y, solution_type):
     if solution_type.lower() == "a":
         theta1, theta2 = inverse_kin_analytical(x, y)
@@ -219,10 +220,52 @@ def move_to_position(x, y, solution_type):
     else:
         raise Exception("Invalid solution type. Please enter 'a' for the analytical solution or 'n' for the numerical solution.")
     
-    first_motor.move_angle(round(degrees(theta1)))
+    print(theta1, theta2)
     second_motor.move_angle(round(degrees(theta2)))
+    first_motor.move_angle(round(degrees(theta1)))
+
+    print("Moved to position: ", calculate_coordinates(radians(first_motor.calibrated_position()), radians(second_motor.calibrated_position())))
 
     return [theta1, theta2]
+
+def get_vector(p1, p2):
+    # Returns the vector equivalent to p2 - p1
+    x1, y1, x2, y2 = *p1, *p2
+    return [x2-x1, y2-y1]
+
+def get_points(num_points):
+    # Should be able to get an arbitrary number of points now
+    points = []
+    for _ in range(num_points):
+        btn.wait_for_pressed()
+        print("CLICKED")
+        calculate_coordinates(first_motor.calibrated_position(), second_motor.calibrated_position())
+        points.append(calculate_coordinates(radians(first_motor.calibrated_position()), radians(second_motor.calibrated_position())))
+        print(points[-1])
+        btn.wait_for_released()
+    return points
+
+def add_vector(v1, v2):
+    return [v1[0]+v2[0], v1[1]+v2[1]]
+
+def midpoint(method):
+    points = get_points(2)
+    # points = [[1, 1], [2, 2]]
+    print(points, "MID_PNT")
+    vec = get_vector(points[1], points[0])
+    mp = add_vector(points[1], [vec[0]/2, vec[1]/2])
+
+    first_motor.reset()
+    second_motor.reset()
+    sleep(0.5)
+
+
+    print("MIDPOINT: ", mp)
+
+    move_to_position(*mp, method)
+
+    # return mp
+    #print(get_euclidean(points[0], points[1]))
 
 
 print("RUNNING...")
@@ -239,16 +282,18 @@ try:
     print("First Motor Initial: {}, Second Motor Initial: {}".format(first_motor.calibrated_position(), second_motor.calibrated_position()))
 
     # Starting Position: (18, 0)
-    x = 0
-    y = 18
+    x = 15
+    y = 4
 
     # theta1, theta2 = move_to_position(x, y, "a")
-    theta1, theta2 = move_to_position(x, y, "n")
-    print("theta1 = {}, theta2 = {}".format(degrees(theta1), degrees(theta2)))  # Move to (x,y) position using analytical solution
-    print("First Motor Pos: {}, Second Motor Pos: {}".format(first_motor, second_motor))
-    print((l1*cos(theta1)+l2*cos(theta1+theta2), l1*sin(theta1)+l2*sin(theta1+theta2)))
-    print('robot thinks it is at: ', calculate_coordinates(theta1, theta2))
-    #move_to_position(x, y, "n")  # Move to (x,y) position using numerical solution
+    # theta1, theta2 = move_to_position(x, y, "n")
+    # print("theta1 = {}, theta2 = {}".format(degrees(theta1), degrees(theta2)))  # Move to (x,y) position using analytical solution
+    # print("First Motor Pos: {}, Second Motor Pos: {}".format(first_motor, second_motor))
+    # print((l1*cos(theta1)+l2*cos(theta1+theta2), l1*sin(theta1)+l2*sin(theta1+theta2)))
+    # print('robot thinks it is at: ', calculate_coordinates(theta1, theta2))
+    # move_to_position(x, y, "n")  # Move to (x,y) position using numerical solution
+
+    midpoint("n")
 
     #first_motor.move_angle(20)
     #second_motor.move_angle(40)

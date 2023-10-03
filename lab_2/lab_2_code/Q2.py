@@ -119,26 +119,26 @@ def get_angle():
     points = get_points(3)
     print(calculate_angle(*points))
 
+if __name__ == "__main__":
+    print("RUNNING...")
 
-print("RUNNING...")
+    first_motor = ArmMotor(OUTPUT_D)
+    second_motor = ArmMotor(OUTPUT_B)
+    btn = TouchSensor(INPUT_1)
 
-first_motor = ArmMotor(OUTPUT_D)
-second_motor = ArmMotor(OUTPUT_B)
-btn = TouchSensor(INPUT_1)
+    try:
+        # get_dist()
+        # get_angle()
 
-try:
-    # get_dist()
-    get_angle()
+        # print(first_motor, second_motor)
 
-    # print(first_motor, second_motor)
+        print(move(-30, 90))
 
-    # move(32, 60)
-
-    # print(first_motor, second_motor)
-    # print(c2 - c1)
-except Exception:
-    traceback.print_exc()
-finally:
-    input()
-    first_motor.reset()
-    second_motor.reset()
+        # print(first_motor, second_motor)
+        # print(c2 - c1)
+    except Exception:
+        traceback.print_exc()
+    finally:
+        input()
+        first_motor.reset()
+        second_motor.reset()
