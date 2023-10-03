@@ -101,28 +101,30 @@ def inverse_kin_analytical(x, y):
     return best_thetas  #[theta1, -theta2]
 
 def newtons(x, y, theta1, theta2):
-    theta1, theta2 = 0, 0
+    init_theta1, init_theta2 = theta1, theta2
 
     # Using Newton's method
     # Initializing vectors
     J = [[0,0],[0,0]]    
     
     
-    for angle in range(1, 90):
+    for angle in range(1, 3):
         for j in range(2):
             if j == 0:
-                theta1 = radians(angle)
-                theta2 = radians(angle)
+                theta1 = radians(init_theta1 + angle)
+                theta2 = radians(init_theta2 + angle)
             else:
-                theta1 = radians(-angle)
-                theta2 = radians(-angle)
+                theta1 = radians(init_theta1 - angle)
+                theta2 = radians(init_theta2 - angle)
             x_dist = 100
             y_dist = 100
             prev_theta1 = 100
             prev_theta2 = 100
             idx = 0
+            sig_dig = 6
+
             # while abs(x_dist) > 0.5 or abs(y_dist) > 0.5 and i < 10:
-            while round(prev_theta1, 4) != round(theta1, 4) and round(prev_theta2, 4) != round(theta2, 4) and idx < 100:
+            while round(prev_theta1, sig_dig) != round(theta1, sig_dig) and round(prev_theta2, sig_dig) != round(theta2, sig_dig) and idx < 100:
                 # Partial derivative of f1 with respect to theta1
                 J[0][0] = -l1*sin(theta1)-l2*sin(theta1+theta2)
                 # Partial derivative of f1 with respect to theta2
@@ -151,7 +153,7 @@ def newtons(x, y, theta1, theta2):
                 # x_dot = -(l1 * sin(prev_theta1) * theta1) - (l2 * sin(prev_theta1 + prev_theta2) * (theta1 + theta2))
                 # y_dot = (l1 * cos(prev_theta1) * theta1) + (l2 * cos(prev_theta1 + prev_theta2) * (theta1 + theta2))
 
-                print("distances", x_dist, y_dist)
+                # print("distances", x_dist, y_dist)
 
                 # dr = [(J[1][1] / det) * x_dot - (J[0][1] / det) * y_dot, 
                 #       (J[1][0] / det) * x_dot + (J[0][0] / det) * y_dot]
@@ -160,39 +162,51 @@ def newtons(x, y, theta1, theta2):
                 #       -(l1 * cos(theta1) + l2 * cos(theta1 + theta2) / l1 * l2 * sin(theta2)) * x_dist + 
                 #       (-l1 * sin(theta1) - l2 * sin(theta1 + theta2) / l1 * l2 * sin(theta2)) * y_dist]
                 
-                dr = [inv_J[0][0] * x_dist - inv_J[0][1] * y_dist, 
+                dr = [inv_J[0][0] * x_dist + inv_J[0][1] * y_dist, 
                     inv_J[1][0] * x_dist + inv_J[1][1] * y_dist]
 
                 prev_theta1 = theta1
                 prev_theta2 = theta2
                 theta1 += dr[0]
                 theta2 += dr[1]
-                print("thetas", degrees(theta1), degrees(theta2))
+                # print("thetas", degrees(theta1), degrees(theta2))
                 idx += 1
         if idx < 100:
             print("starting theta: ", angle, idx)
-            print("distances", x_dist, y_dist)
-            while degrees(abs(theta1)) > 90:
-                theta1 -= pi * (theta1 / abs(theta1))
-                print(degrees(theta1), pi * (theta1 / abs(theta1)))
-            while degrees(abs(theta2)) > 90:
-                theta2 -= pi * (theta2 / abs(theta2))
-                print(degrees(theta2),  pi * (theta2 / abs(theta2)))
+            # print("distances", x_dist, y_dist)
+            while degrees(abs(theta1)) > 180:
+                theta1 -= 2*pi * (theta1 / abs(theta1))
+                # print(degrees(theta1), 2*pi * (theta1 / abs(theta1)))
+            while degrees(abs(theta2)) > 180:
+                theta2 -= 2*pi * (theta2 / abs(theta2))
+                # print(degrees(theta2),  2*pi * (theta2 / abs(theta2)))
             return [theta1, theta2]
-    return [0, 0]
+    return [init_theta1, init_theta2]
 
 def inverse_kin_numerical(x, y):
-    x_init, y_init = 0, 0
+    x_init, y_init = 18, 0
+    theta1, theta2 = 0, 0
 
-    tot_x_dist = abs(x - x_init)
-    tot_y_dist = abs(y - y_init)
+    tot_x_dist = x - x_init
+    tot_y_dist = y - y_init
 
     x_step = tot_x_dist / 10
     y_step = tot_y_dist / 10
 
+
     for step in range(1, 11):
-        print(x_step * step)
-        
+        print(x_init + x_step * step)
+        print(y_init + y_step * step)
+
+        theta1, theta2 = newtons(x_init + x_step * step, y_init + y_step * step, theta1, theta2)
+
+    # theta1, theta2 = newtons(x, y, 0, 0)
+    
+    return [theta1, theta2]
+
+
+
+
     # return newtons(x, y, 0, 0)
 
     
@@ -225,8 +239,8 @@ try:
     print("First Motor Initial: {}, Second Motor Initial: {}".format(first_motor.calibrated_position(), second_motor.calibrated_position()))
 
     # Starting Position: (18, 0)
-    x = 16
-    y = 3
+    x = 0
+    y = 18
 
     # theta1, theta2 = move_to_position(x, y, "a")
     theta1, theta2 = move_to_position(x, y, "n")
