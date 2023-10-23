@@ -21,7 +21,7 @@ class Client:
     def pollData(self):
         print("Waiting for Data")
         data = self.s.recv(128).decode("UTF-8")
-        print("Data Received")
+        print("Data Received", data)
         return data
     
     # Sends a message to the server letting it know that the movement of the motors was executed without any inconvenience.
@@ -69,3 +69,7 @@ def initial_jacobian():
 
 while True:
     initial_jacobian()
+    first_angle, second_angle = client.get_angles()
+    first_motor.move_angle(first_angle)
+    second_motor.move_angle(second_angle)
+    

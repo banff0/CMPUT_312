@@ -52,10 +52,10 @@ class Tracker:
             self.DrawCircles(frame, circlesGoal, (0, 0, 255))
 
             if circlesPoint is not None:
-                self.point = circlesPoint[0][0]
+                self.point = circlesPoint[0][0].tolist()
             
             if circlesGoal is not None:
-                self.goal = circlesGoal[0][0]
+                self.goal = circlesGoal[0][0].tolist()
 
             # Shows the original image with the detected circles drawn.
             cv2.imshow("Result", frame)

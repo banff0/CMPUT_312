@@ -80,8 +80,8 @@ def estimate_jacobian():
 
 def inverse(j):
     # Computes the inverse of a 2*2 jacobian
-
-    a, b, c, d = j[0], j[1]
+    print(j)
+    a, b, c, d = *j[0], *j[1]
     det = a*d - b*c  # determinant
     return Matrix([[d, -b], [-c, a]]).multiply_with_scalar(1/det)
 
@@ -89,8 +89,8 @@ def broyden():
     # Assuming we already have the initial jacobian
 
     # The goal and end effector positions, respectively, in pixel coordinates
-    goal = Vector(tracker.goal[0])
-    point = Vector(tracker.point[0])
+    goal = Vector(tracker.goal)
+    point = Vector(tracker.point)
 
     # The error vector. It is the vector from the point to the goal
     error = goal - point
@@ -119,4 +119,5 @@ print("Moving on")
 
 while True:
     initial_jacobian = estimate_jacobian()
+    broyden()
     input()
