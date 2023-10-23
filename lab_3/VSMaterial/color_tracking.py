@@ -28,7 +28,7 @@ orangeHighMask = (20, 255, 255)
 greenLowMask= (53, 96, 46)
 greenHighMask= (82, 197, 169)
 ########################################
-VERBOSE = False
+VERBOSE = True
 
 class Tracker:
 

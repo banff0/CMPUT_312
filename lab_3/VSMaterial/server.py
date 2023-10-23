@@ -34,6 +34,7 @@ class Server:
         # Waiting for the client (ev3 brick) to let the server know that it is done moving
         reply = self.cs.recv(128).decode("UTF-8")
         queue.put(reply)
+        assert queue.get(block=True) == "DONE" 
 
     # Sends a termination message to the client. This will cause the client to exit "cleanly", after stopping the motors.
     def sendTermination(self):

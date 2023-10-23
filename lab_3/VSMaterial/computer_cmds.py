@@ -26,64 +26,80 @@ def update_J(J, dp, dt):
     print(J.shape)
     return J
 
-#TODO: implement get angle function on server
-#TODO: tighten / test HSV values on actual camera
-#TODO: check in what order we are returning points in coltracker if issues arise
 
+def estimate_jacobian(server, queue, tracker):
+    # We move the base motor by 10 degrees, record the initial and final points,
+    # and do the same for the second motor. The reset part is done in initial_jacobian() in client.py
+    ### Reset done in initial_jacobian() in client.py. The reason is that since we assume we do not
+    ### know the motor angles, I can't just send 
+    theta = 10
 
-def move_to_goal():
+    print(tracker.point)
+    u0, v0, _ = tracker.point[0]
+    # Theta 1
+    server.sendAngles(theta, 0, queue)
+    time.sleep(1)
+    u1, v1, _ = tracker.point[0]
+    server.sendAngles(-theta, 0, queue)
+
+    # Theta 2
+    server.sendAngles(0, theta, queue)
+    time.sleep(1)
+    u2, v2, _ = tracker.point[0]
+    server.sendAngles(0, -theta, queue)
+
+    jacobian = np.array([[(u1-u0)/theta, (u2-u0)/theta], 
+                         [(v1-v0)/theta, (v2-v0)/theta]])
+    
+    
+
+    return jacobian
+
+def broyden():
     server, queue = init_host()
     tracker = color_tracking.Tracker('b', 'r')
-    dp = np.array([[1, 3],
-                   [2, 4]])
-    theta = np.array([0, 0])
-    ptheta = np.array([0, 0])
-    err = np.array([10000, 10000])
-    J = None
+    # Assuming we already have the initial jacobian
 
     lambda_ = 0.01
-    update_rate = 5
+    alpha = 0.5
+
+    # The goal and end effector positions, respectively, in pixel coordinates
+    point = (0, 0, 0)
+    goal = (0, 0, 0)
+    delta_angles = np.array([0,0])
+    theta = np.array([0,0])
+    while np.all(point == (0, 0, 0)) or np.all(goal == (0, 0, 0)):
+        goal = np.array(tracker.goal[0])
+        point = np.array(tracker.point[0])
     
+    goal = goal[:-1]
+    point = point[:-1]
+    
+    print(point.shape)
+
+    # The error vector. It is the vector from the point to the goal
+    error = goal - point
+    threshold = 20   # in pixels
+    
+    jacobian = estimate_jacobian(server, queue, tracker)
+    print("INIT JACOBIAN", jacobian)
     idx = 0
-    while abs(err[0]) >= 5 and abs(err[1]) >= 5:
-        if idx < 2:
-            goal = tracker.goal
-        end = tracker.point
-        # wait for image to load
-        if not np.all(end == (0, 0, 0)):
-            end = end[0]
-            err = goal - end
-            err = err[0][:-1]
-            print("err", err)
-            # init J if first loop
-            if np.all(J == None):
-                dt = np.array([5, 5])
-                # get the change in x and y for movement dt
-                server.sendAngles(dt[0], dt[1], queue)
-                dp[:, :] = (tracker.point[0] - end)[:-1]
-                server.sendAngles(-dt[0], -dt[1], queue)
-                # calculate J
-                J = get_J(dp, dt)
-            
-            # calculate next moevment, and save change in theta
-            ptheta = theta
-            print(theta)
-            print(np.linalg.pinv(J).shape, err.shape)
-            theta = theta - lambda_ * np.matmul(np.linalg.pinv(J), err)
-            print(theta)
-            dt = theta - ptheta
+    while np.linalg.norm(error) > threshold:
+        point = np.array(tracker.point[0])[:-1]
+        print(point)
+        error = goal - point
+        ptheta = theta
+        theta = ptheta - lambda_ * np.matmul(np.linalg.pinv(jacobian), error)
 
-            # move the arm, get the change in pixels
-            server.sendAngles(*theta, queue)
-            print("err", (tracker.point[0] - end)[:-1])
-            dp = np.array((tracker.point[0] - end)[:-1])
+        server.sendAngles(theta[0], theta[1], queue)
+        if idx % 5 == 0:
+            dtheta = ptheta - theta
+            jacobian = jacobian + alpha * np.outer(((error - np.matmul(jacobian, dtheta)) / np.dot(dtheta, dtheta)), dtheta)
+            print("NEW JACOBIAN", jacobian)
+        idx += 1
+        time.sleep(1)
 
-            if idx % update_rate == 0:
-                J = update_J(J, dp, dt)
-            idx += 1
-
-            time.sleep(2)
-
+    print(np.linalg.norm(error))
 
 dt = np.array([10, 10])
 dp = np.array([[20, 50],
@@ -91,6 +107,7 @@ dp = np.array([[20, 50],
 
 print(get_J(dp, dt))
 
-move_to_goal()
+# move_to_goal()
+broyden()
 
 print("DONE")

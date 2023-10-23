@@ -24,7 +24,7 @@ class Client:
             
         
     # Block until a message from the server is received. When the message is received it will be decoded and returned as a string.
-    # Output: UTF-8 decoded string containing the instructions from server.
+    # Output: UTF-8 decoded string containing the instructions from server.5
     def pollData(self):
         print("Waiting for Data")
         data = self.s.recv(128).decode("UTF-8")
