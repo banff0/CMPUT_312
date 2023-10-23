@@ -138,7 +138,6 @@ def go_to_point():
     print("CLICKED")
     move_to_position(x, y, first_motor.position, second_motor.position)
 
-
 print("RUNNING...")
 
 first_motor = ArmMotor(OUTPUT_D, False)
