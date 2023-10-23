@@ -45,7 +45,7 @@ def move_to_goal():
     update_rate = 5
     
     idx = 0
-    while abs(err[0]) >= 5 and abs(err[1]) >= 5:
+    while abs(err[0]) >= 5 or abs(err[1]) >= 5:
         if idx < 2:
             goal = tracker.goal
         end = tracker.point
@@ -69,7 +69,7 @@ def move_to_goal():
             ptheta = theta
             print(theta)
             print(np.linalg.pinv(J).shape, err.shape)
-            theta = theta - lambda_ * np.matmul(np.linalg.pinv(J), err)
+            theta = theta + lambda_ * np.matmul(np.linalg.pinv(J), err)
             print(theta)
             dt = theta - ptheta
 

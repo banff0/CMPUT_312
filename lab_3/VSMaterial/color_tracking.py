@@ -28,7 +28,7 @@ orangeHighMask = (20, 255, 255)
 greenLowMask= (53, 96, 46)
 greenHighMask= (82, 197, 169)
 ########################################
-VERBOSE = False
+VERBOSE = True
 
 class Tracker:
 
@@ -118,7 +118,7 @@ class Tracker:
 if __name__ == "__main__":
     VERBOSE = True
     print("Tracker Setup")
-    tracker = Tracker('b', 'g')
+    tracker = Tracker('b', 'r')
     print("Moving on")
     while True:
         print("Point is at: "+str(tracker.point))
