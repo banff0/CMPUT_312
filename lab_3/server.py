@@ -39,7 +39,8 @@ class Server:
         # Waiting for the client (ev3 brick) to let the server know that it is done moving
         reply = self.cs.recv(128).decode("UTF-8")
         queue.put(reply)
-        assert queue.get(block=True) == "DONE"
+        # block is true because we want to wait for the motors to fully move before continuing the program
+        assert queue.get(block=True) == "DONE" 
 
     # Sends a termination message to the client. This will cause the client to exit "cleanly", after stopping the motors.
     def sendTermination(self):
@@ -82,8 +83,7 @@ def inverse(j):
 
     a, b, c, d = j[0], j[1]
     det = a*d - b*c  # determinant
-    return [[d/det, -b/det],
-            [-c/det, a/det]]
+    return Matrix([[d, -b], [-c, a]]).multiply_with_scalar(1/det)
 
 def broyden():
     # Assuming we already have the initial jacobian
@@ -98,12 +98,11 @@ def broyden():
     
     jacobian = initial_jacobian
     while error.norm() > threshold:
-        delta_angles = jacobian.multiply_with_vector(error)
+        delta_angles = inverse(jacobian).multiply_with_vector(error)
         server.sendAngles(delta_angles[0], delta_angles[1], queue)
+        ## Not tested yet (I have a class, sorry!)
+        jacobian = jacobian + ((error - jacobian.multiply_with_vector(delta_angles)).multiply_with_scalar(1 / delta_angles.dot_product(delta_angles))).outer_product(delta_angles)
         
-
-    
-
     
 
 global server, tracker, queue, initial_jacobian

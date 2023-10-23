@@ -37,10 +37,10 @@ class Matrix:
 
     def __add__(self, other):
         assert self.rows == other.rows and self.columns == other.columns
-        result = [[0 for j in range(len(self.matrix[0]))] for i in range(len(self.matrix))]
+        result = [[0 for j in range(self.columns)] for i in range(self.rows)]
         for row in range(self.rows):
             for col in range(self.columns):
-                result[row][col] = self.mtrix[row][col] + other.matrix[row][col]
+                result[row][col] = self.matrix[row][col] + other.matrix[row][col]
         return Matrix(result)
     
     def __sub__(self, other):
@@ -50,13 +50,23 @@ class Matrix:
             for col in range(self.columns):
                 result[row][col] = self.matrix[row][col] - other.matrix[row][col]
         return Matrix(result)
+    
+    def __neg__(self):
+        return Matrix([[-element for element in row] for row in self.matrix])
 
     def __getitem__(self, row):
-        return self.matrix[row]
+        return Vector(self.matrix[row])
+
+    def __str__(self):
+        return "\n".join([str(row) for row in self.matrix])
+    
+    def multiply_with_scalar(self, scalar):
+        assert type(scalar) in [int, float]
+        return Matrix([[scalar*element for element in row] for row in self.matrix])
 
     def multiply_with_vector(self, vector):
         assert self.columns == len(vector)
-
+        assert type(vector) in [Vector, list, tuple]
         result = []
         for row in range(self.rows):
             result.append(0)
@@ -75,17 +85,34 @@ class Vector:
     
     def __add__(self, other):
         assert len(self) == len(other)
-        return Vector([self.vector[i] + other.vector[i] for i in range(len(self))])
+        return Vector([self[i] + other[i] for i in range(len(self))])
     
     def __sub__(self, other):
         assert len(self) == len(other)
-        return Vector([self.vector[i] - other.vector[i] for i in range(len(self))])
+        return Vector([self[i] - other[i] for i in range(len(self))])
+    
+    def __neg__(self):
+        return Vector([-element for element in self.vector])
 
     def __getitem__(self, index):
         return self.vector[index]
     
+    def __str__(self):
+        return str(self.vector)
+    
     def norm(self):
-        return sqrt(self.vector[0]**2 + self.vector[1]**2)
+        return sqrt(self[0]*self[0] + self[1]*self[1])
+    
+    def multiply_with_scalar(self, scalar):
+        return Vector([scalar*element for element in self.vector])
+    
+    def dot_product(self, other):
+        assert len(self) == len(other)
+        return sum([self[i]*other[i] for i in range(len(self))])
+    
+    def outer_product(self, other):
+        assert len(self) == len(other)
+        return Matrix([[self[i]*other[j] for j in range(len(self))] for i in range(len(self))])
     
 def calculate_coordinates(theta1, theta2):
     theta1, theta2 = radians(theta1), radians(theta2)
