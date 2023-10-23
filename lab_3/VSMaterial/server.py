@@ -4,6 +4,7 @@
 import socket
 import time
 from queue import Queue
+import json
 
 # This class handles the Server side of the comunication between the laptop and the brick.
 class Server:
@@ -11,7 +12,7 @@ class Server:
        # setup server socket
         serversocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM) 
         # We need to use the ip address that shows up in ipconfig for the usb ethernet adapter that handles the comunication between the PC and the brick
-        print("Setting up Server\nAddress: " + host + "\nPort: " + str(port))
+        print("Setting up Server\nAddress: " + str(host) + "\nPort: " + str(port))
         
         serversocket.bind((host, port))
         # queue up to 5 requests
@@ -25,8 +26,10 @@ class Server:
     #        queue [Thread-safe Queue]: Mutable data structure to store (and return) the messages received from the client
     def sendAngles(self, base_angle, joint_angle, queue):
         # Format in which the client expects the data: "angle1,angle2"
-        data = str(base_angle) + "," + str(joint_angle)
-        print("Sending Data: (" + data + ") to robot.")
+        data = {"cmd": "MOVE", "data": str(base_angle) + "," + str(joint_angle)}
+        data = str(data)
+        # data = str(base_angle) + "," + str(joint_angle)
+        print("Sending Data: (" + str(data) + ") to robot.")
         self.cs.send(data.encode("UTF-8"))
         # Waiting for the client (ev3 brick) to let the server know that it is done moving
         reply = self.cs.recv(128).decode("UTF-8")
@@ -34,7 +37,17 @@ class Server:
 
     # Sends a termination message to the client. This will cause the client to exit "cleanly", after stopping the motors.
     def sendTermination(self):
-        self.cs.send("EXIT".encode("UTF-8"))
+        data = {"cmd": "EXIT", "data": ""}
+        data = str(data)
+        self.cs.send(data.encode("UTF-8"))
+
+    def getAngles(self):
+        data = {"cmd": "GET_ANGLES", "data": ""}
+        data = str(data)
+        self.cs.send(data.encode("UTF-8"))
+        reply = json.loads(self.cs.recv(128).decode("UTF-8"))
+        print(reply)
+        return reply
 
     # Lets the client know that it should enable safety mode on its end
     def sendEnableSafetyMode(self):
@@ -46,11 +59,12 @@ class Server:
 
 
 if __name__ == "__main__":
-    host = "192.168.0.2"
+    host = "169.254.79.135"
     port = 9999
     server = Server(host, port)
     queue = Queue()
 
-    while True:
-        time.sleep(10)
-        server.sendAngles(10, 10, queue)
+    server.sendAngles(10, 10, queue)
+    a = server.getAngles()
+    server.sendTermination()
+    print(a)
