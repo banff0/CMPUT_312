@@ -41,7 +41,7 @@ class Client:
     #     self.s.send(formattedData.encode("UTF-8"))
     
     def get_angles(self):
-        angles = [int(angle) for angle in self.pollData().split(",")]
+        angles = [float(angle) for angle in self.pollData().split(",")]
         self.sendDone()
         return angles
 
@@ -50,7 +50,7 @@ second_motor = ArmMotor(OUTPUT_B)
 first_motor.position = 0
 second_motor.position = 0
 
-host = "169.254.225.196"
+host = "169.254.79.135"
 port = 9999
 client = Client(host, port)
 i = 0
@@ -62,13 +62,14 @@ def initial_jacobian():
         first_motor.move_angle(first_angle)
         second_motor.move_angle(second_angle)
         time.sleep(2)
-        first_motor.reset()
-        second_motor.reset()
+        first_motor.move_angle(-first_angle)
+        second_motor.move_angle(-second_angle)
         ################## Ask Christoph about resetting motors
         time.sleep(2)
 
+initial_jacobian()
+
 while True:
-    initial_jacobian()
     first_angle, second_angle = client.get_angles()
     first_motor.move_angle(first_angle)
     second_motor.move_angle(second_angle)

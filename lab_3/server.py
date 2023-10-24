@@ -60,54 +60,66 @@ def estimate_jacobian():
     # and do the same for the second motor. The reset part is done in initial_jacobian() in client.py
     ### Reset done in initial_jacobian() in client.py. The reason is that since we assume we do not
     ### know the motor angles, I can't just send 
-    theta = 10
+    theta = 15
 
     u0, v0, _ = tracker.point
     # Theta 1
     server.sendAngles(theta, 0, queue)
-    time.sleep(1)
+    time.sleep(2)
     u1, v1, _ = tracker.point
 
     # Theta 2
     server.sendAngles(0, theta, queue)
-    time.sleep(1)
+    time.sleep(2)
     u2, v2, _ = tracker.point
 
     jacobian = [[(u1-u0)/theta, (u2-u0)/theta], 
                 [(v1-v0)/theta, (v2-v0)/theta]]
     
+    time.sleep(1)
     return Matrix(jacobian)
 
 def inverse(j):
     # Computes the inverse of a 2*2 jacobian
-    print(j)
     a, b, c, d = *j[0], *j[1]
-    det = a*d - b*c  # determinant
+    det = a*d - b*c  # determinants
     return Matrix([[d, -b], [-c, a]]).multiply_with_scalar(1/det)
 
 def broyden():
     # Assuming we already have the initial jacobian
 
     # The goal and end effector positions, respectively, in pixel coordinates
-    goal = Vector(tracker.goal)
-    point = Vector(tracker.point)
+    goal = Vector(tracker.goal[:-1])
+    point = Vector(tracker.point[:-1])
 
-    # The error vector. It is the vector from the point to the goal
+    # The error vector. It is the vector from the point to the goalv
     error = goal - point
-    threshold = 20   # 20 pixels
+    threshold = 25   # 20 pixels
     
     jacobian = initial_jacobian
+    idx = 0
     while error.norm() > threshold:
-        delta_angles = inverse(jacobian).multiply_with_vector(error)
+        print(error.norm(), goal, Vector(tracker.point[:-1]))
+        # print(inverse(jacobian), error)
+        delta_angles = inverse(jacobian).multiply_with_vector(error).multiply_with_scalar(0.25)
         server.sendAngles(delta_angles[0], delta_angles[1], queue)
+        time.sleep(2)
         ## Not tested yet (I have a class, sorry!)
-        jacobian = jacobian + ((error - jacobian.multiply_with_vector(delta_angles)).multiply_with_scalar(1 / delta_angles.dot_product(delta_angles))).outer_product(delta_angles)
+        if idx % 5 == 0:
+            print("hii")
+            # pass
+            jacobian = jacobian + ((error - jacobian.multiply_with_vector(delta_angles)).multiply_with_scalar(1 / delta_angles.dot_product(delta_angles))).outer_product(delta_angles).multiply_with_scalar(.10)
+        error = goal - Vector(tracker.point[:-1])
+        idx += 1
+    
+    print("DONE", error.norm())
+    
         
     
 
 global server, tracker, queue, initial_jacobian
 
-host = "169.254.225.196"
+host = "169.254.79.135"
 port = 9999
 server = Server(host, port)
 queue = Queue()
@@ -119,5 +131,6 @@ print("Moving on")
 
 while True:
     initial_jacobian = estimate_jacobian()
+    time.sleep(1)
     broyden()
     input()
