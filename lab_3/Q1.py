@@ -79,8 +79,13 @@ def move_to_position(x, y, theta1, theta2):
         # second_motor.wait_while('running')
         first_motor.wait_while('running')
 
-        theta1 = degrees(dtheta1)
-        theta2 = degrees(dtheta2)
+        # this won't work
+        # theta1 = degrees(dtheta1)
+        # theta2 = degrees(dtheta2)
+
+        # this should be better?
+        theta1 = first_motor.position
+        theta2 = second_motor.poition
     # inverse_kin_numerical(x, y, theta1, theta2)
     
     print(theta1, theta2)
