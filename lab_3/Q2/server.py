@@ -80,22 +80,24 @@ def broyden():
     threshold = 25   # 25 pixels
     
     jacobian = initial_jacobian
+    inverse_jacobian = inverse(jacobian)
     idx = 0
     while error.norm() > threshold:
-        print(error.norm(), goal, Vector(tracker.point[:-1]))
-        # print(inverse(jacobian), error)
-        delta_angles = inverse(jacobian).multiply_with_vector(error).multiply_with_scalar(0.25)
+        # We are following the formulae from the lab notes
+        delta_angles = inverse_jacobian.multiply_with_vector(error).multiply_with_scalar(0.25)
         server.sendAngles(delta_angles[0], delta_angles[1], queue)
-        time.sleep(2)
-        ## Not tested yet (I have a class, sorry!)
+        time.sleep(2)  # Allow the motors to finish moving before we continue
+        
+        # Update the Jacobian every 5 steps to minimize updating the jacobian and recomputing its inverse every time
+        # The reason we added this is because in general, it is expensive to update the jacobian and recomputing it's
+        # inverse everytime, even though it doesn't matter that much in this case since this is a 2*2 Jacobian.
         if idx % 5 == 0:
-            print("hii")
-            # pass
             jacobian = jacobian + ((error - jacobian.multiply_with_vector(delta_angles)).multiply_with_scalar(1 / delta_angles.dot_product(delta_angles))).outer_product(delta_angles).multiply_with_scalar(.10)
+            inverse_jacobian = inverse(jacobian)
         error = goal - Vector(tracker.point[:-1])
         idx += 1
     
-    print("DONE", error.norm())
+    return error
 
 global server, tracker, queue, initial_jacobian
 
@@ -109,8 +111,7 @@ tracker = Tracker('g', 'r')
 time.sleep(2)
 print("Moving on")
 
-while True:
-    initial_jacobian = estimate_jacobian()
-    time.sleep(1)
-    broyden()
-    input()
+initial_jacobian = estimate_jacobian()
+time.sleep(1)
+error = broyden()
+print("DONE", error.norm())
