@@ -115,6 +115,8 @@ class Tracker:
         
 if __name__ == '__main__':
     print("Tracker Setup")
+    # Even the though this expects a green sticker to be on our end effector, we found the color detection
+    # to work better with a blue sticker instead
     tracker = Tracker('g', 'r')
     print("Moving on")
     while True:

@@ -5,13 +5,8 @@ import socket
 import time
 from queue import Queue
 
-from ev3dev2.motor import OUTPUT_B, OUTPUT_D
-
 from color_tracking import Tracker
-
-from util import calculate_coordinates, Vector, Matrix
-
-from math import sqrt
+from util import Vector, Matrix
 
 # This class handles the Server side of the comunication between the laptop and the brick.
 class Server:
@@ -41,18 +36,6 @@ class Server:
         queue.put(reply)
         # block is true because we want to wait for the motors to fully move before continuing the program
         assert queue.get(block=True) == "DONE" 
-
-    # Sends a termination message to the client. This will cause the client to exit "cleanly", after stopping the motors.
-    def sendTermination(self):
-        self.cs.send("EXIT".encode("UTF-8"))
-
-    # Lets the client know that it should enable safety mode on its end
-    def sendEnableSafetyMode(self):
-        self.cs.send("SAFETY_ON".encode("UTF-8"))
-    
-    # Lets the client know that it should disable safety mode on its end
-    def sendDisableSafetyMode(self):
-        self.cs.send("SAFETY_OFF".encode("UTF-8"))
 
 
 def estimate_jacobian():
@@ -94,7 +77,7 @@ def broyden():
 
     # The error vector. It is the vector from the point to the goalv
     error = goal - point
-    threshold = 25   # 20 pixels
+    threshold = 25   # 25 pixels
     
     jacobian = initial_jacobian
     idx = 0
@@ -113,13 +96,10 @@ def broyden():
         idx += 1
     
     print("DONE", error.norm())
-    
-        
-    
 
 global server, tracker, queue, initial_jacobian
 
-host = "169.254.79.135"
+host = "169.254.225.196"
 port = 9999
 server = Server(host, port)
 queue = Queue()
