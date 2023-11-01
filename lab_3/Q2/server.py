@@ -69,6 +69,8 @@ def inverse(j):
     return Matrix([[d, -b], [-c, a]]).multiply_with_scalar(1/det)
 
 def broyden():
+    # This is where we implement the functionality of going towards our goal iteratively using Broyden's method
+
     # Assuming we already have the initial jacobian
 
     # The goal and end effector positions, respectively, in pixel coordinates
@@ -107,11 +109,15 @@ server = Server(host, port)
 queue = Queue()
 
 print("Tracker Setup")
+# Even the though this expects a green sticker to be on our end effector, we found the color detection
+# to work better with a blue sticker instead
 tracker = Tracker('g', 'r')
 time.sleep(2)
 print("Moving on")
 
 initial_jacobian = estimate_jacobian()
 time.sleep(1)
+# error here is the difference (in pixel coordinates) between the goal point and
+# our end effector 
 error = broyden()
 print("DONE", error.norm())
