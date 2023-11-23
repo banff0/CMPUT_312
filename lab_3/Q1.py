@@ -85,7 +85,7 @@ def move_to_position(x, y, theta1, theta2):
 
         # this should be better?
         theta1 = first_motor.position
-        theta2 = second_motor.poition
+        theta2 = second_motor.position
     # inverse_kin_numerical(x, y, theta1, theta2)
     
     print(theta1, theta2)

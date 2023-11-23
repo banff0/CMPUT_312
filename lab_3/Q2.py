@@ -1,31 +1,31 @@
 #!/usr/bin/env python3
 
 """
-Group Members: 
-    - Name: Firas Al Chalabi, CCID: falchala
-    - Name: Jasper Leng, CCID:jleng1
+    Group Members: 
+        - Name: Firas Al Chalabi, CCID: falchala
+        - Name: Jasper Leng, CCID:jleng1
 
-Date: 16-Oct-2023
- 
-Brick Number: G8
+    Date: 16-Oct-2023
+    
+    Brick Number: G8
 
-Lab Number: D01
- 
-Brief Program/Problem Description: 
+    Lab Number: D01
+    
+    Brief Program/Problem Description: 
 
-	...
+        ...
 
-Brief Solution Summary:
+    Brief Solution Summary:
 
-	Algorithmic idea, underlying theory, etc...
+        Algorithmic idea, underlying theory, etc...
 
-Used Resources/Collaborators:
-	- python-ev3dev2 API reference: https://ev3dev-lang.readthedocs.io/projects/python-ev3dev/en/stable/spec.html
-    - Lecture Slides
+    Used Resources/Collaborators:
+        - python-ev3dev2 API reference: https://ev3dev-lang.readthedocs.io/projects/python-ev3dev/en/stable/spec.html
+        - Lecture Slides
 
-I/we hereby certify that we have produced the following solution 
-using only the resources listed above in accordance with the 
-CMPUT 312 collaboration policy.
+    I/we hereby certify that we have produced the following solution 
+    using only the resources listed above in accordance with the 
+    CMPUT 312 collaboration policy.
 """
 
 from ev3dev2.motor import LargeMotor, OUTPUT_D, OUTPUT_B
