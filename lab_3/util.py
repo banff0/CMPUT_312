@@ -1,33 +1,27 @@
-# This file contains utility functions and classes used in both questions of the lab
-# to avoid code repetition.
+# This file contains utility functions and classes used in Q1 and Q2 of the lab.
+# The reason this file is included is because we want to isolate the Q1 and Q2 code
+# from some of the functions we used to make them work.
 
 from ev3dev2.motor import LargeMotor
-from math import radians, cos, sin, sqrt
+from math import radians, cos, sin, sqrt, acos, atan2
 
 # All length units are in cm, all angles are in degrees
 
 l1, l2 = 11, 7
 
 class ArmMotor(LargeMotor):
-    def __init__(self, OUTPUT, block=True):
+    def __init__(self, OUTPUT):
         super(ArmMotor, self).__init__(OUTPUT)
-        self.initial_pos = self.position
         self.STOP_ACTION_HOLD = "brake" # make it so that the motors can be moved by hand
-        self.block = block
         
-    def move_angle(self, theta, spd=10):
-        self.on_for_degrees(spd, theta, block=self.block)
+    def move_angle(self, theta, spd=10, block=True):
+        self.on_for_degrees(spd, theta, block=block)
 
     def reset(self):
         self.move_angle(-self.position) 
-        # self.move_angle(self.initial_pos-self.position) 
-
-    def calibrated_position(self):
-        return self.position
-        #return super().position-self.initial_pos
     
     def __str__(self) -> str:
-        return str(self.calibrated_position())
+        return str(self.position)
     
 class Matrix:
     def __init__(self, matrix):
@@ -114,8 +108,19 @@ class Vector:
         assert len(self) == len(other)
         return Matrix([[self[i]*other[j] for j in range(len(self))] for i in range(len(self))])
     
+
 def calculate_coordinates(theta1, theta2):
     theta1, theta2 = radians(theta1), radians(theta2)
     x = l1*cos(theta1) + l2*cos(theta1+theta2)
     y = l1*sin(theta1) + l2*sin(theta1+theta2)
-    return [x, y]
+    return Vector([x, y])
+
+def inverse_kin_analytical(x, y, init_theta2):
+    init_theta2 = radians(init_theta2)
+    theta2 = acos((x**2 + y**2 - l1**2 - l2**2) / (2*l1*l2))
+    theta2_options = [theta2, -theta2]
+    theta2 = theta2_options[0] if abs(theta2_options[0] - init_theta2) < abs(theta2_options[1] - init_theta2) else theta2_options[1]
+
+    theta1 = atan2(y, x) - atan2(l2 * sin(theta2), l1 + l2 * cos(theta2))
+
+    return Vector([theta1, theta2])

@@ -132,7 +132,7 @@ if __name__ == "__main__":
 
         # print(first_motor, second_motor)
 
-        print(move(-30, 90))
+        print(move(115, -25))
 
         # print(first_motor, second_motor)
         # print(c2 - c1)
