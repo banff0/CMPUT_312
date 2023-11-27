@@ -10,6 +10,7 @@ from math import cos, sin, radians, degrees, sqrt, acos
 from time import sleep
 
 from letters import *
+import traceback
 
 class ArmMotor(LargeMotor):
     def __init__(self, OUTPUT, invert=False):
@@ -75,9 +76,23 @@ x_mtr = ArmMotor(OUTPUT_C)
 #     dx -= 0.01
 #     dy += 0.01
 # x_mtr.move_angle(2*-360)
-y_mtr.move_angle(2*360)
-A(x_mtr, y_mtr)
-   
+#y_mtr.move_angle(2*360)
+x_mtr.position = 0; y_mtr.position = 0
+swan = SWAN(x_mtr, y_mtr)
+try:
+    swan.A()
+    swan.E()
+    swan.F()
+    swan.I()
+except AssertionError:
+    pass
+except Exception as e:
+    traceback.print_exc()
+finally:
+    print(x_mtr.position, y_mtr.position)
+    input("Click Enter to reset")
+    x_mtr.reset()
+    y_mtr.reset()
 # y_mtr.STOP_ACTION_HOLD = "brake"
 # x_mtr.STOP_ACTION_HOLD = "brake"
 
