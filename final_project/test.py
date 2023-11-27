@@ -9,6 +9,8 @@ from ev3dev2.button import Button
 from math import cos, sin, radians, degrees, sqrt, acos
 from time import sleep
 
+from letters import *
+
 class ArmMotor(LargeMotor):
     def __init__(self, OUTPUT, invert=False):
         super(ArmMotor, self).__init__(OUTPUT)
@@ -17,7 +19,7 @@ class ArmMotor(LargeMotor):
         if invert:
             self.POLARITY_INVERSED = "inversed"
 
-    def move_angle(self, theta, spd=20, block=True):
+    def move_angle(self, theta, spd=10, block=True):
         self.on_for_degrees(spd, theta, block = block)
 
     def reset(self):
@@ -41,18 +43,18 @@ x_mtr = ArmMotor(OUTPUT_C)
 # y_mtr.STOP_ACTION_HOLD = "coast"
 # x_mtr.STOP_ACTION_HOLD = "coast"
 
-y_mtr.move_angle(360 * .5, block=False)
-x_mtr.move_angle(360 * .25)
+# y_mtr.move_angle(360 * .5, block=False)
+# x_mtr.move_angle(360 * .25)
 
-y_mtr.move_angle(-360 * .5, block=False)
-x_mtr.move_angle(360 * .25)
+# y_mtr.move_angle(-360 * .5, block=False)
+# x_mtr.move_angle(-360)
 
 
-# ARC
+### ARC
 # dx = 0.2
-# dy = 0.095
+# dy = 0.0
 
-# for i in range(0, 10):
+# for i in range(0, 21):
 #     # y_mtr.move_angle(-360 * 0.03, spd=5 + (i/5) * 2, block=False)
 #     # x_mtr.move_angle(-360 * 0.03, spd=25 - (i/5) * 2, block=True)
 #     # print(5 + (i/5) * 2, 25 - (i/5) * 2)
@@ -62,19 +64,20 @@ x_mtr.move_angle(360 * .25)
 #     if dy > dx:
 #         ratio = ((100*dx)/(100*dy))
 #         print(dx, dy, 10 * ratio)
-#         x_mtr.move_angle(360 * (dx), spd = 10 * ratio, block=False)
-#         y_mtr.move_angle(360 * (dy), spd = 10, block=True)
+#         x_mtr.move_angle(-360 * (dx), spd = 10 * ratio, block=False)
+#         y_mtr.move_angle(-360 * (dy), spd = 10, block=True)
 #     else:
 #         ratio = ((100*dy)/(100*dx))
 #         print(dx, dy, 10 * ratio)
-#         x_mtr.move_angle(360 * (dx), spd = 10, block=False)
-#         y_mtr.move_angle(360 * (dy), spd = 10 * ratio, block=True)
+#         x_mtr.move_angle(-360 * (dx), spd = 10, block=False)
+#         y_mtr.move_angle(-360 * (dy), spd = 10 * ratio, block=True)
 
 #     dx -= 0.01
 #     dy += 0.01
-
-    
-    
+# x_mtr.move_angle(2*-360)
+y_mtr.move_angle(2*360)
+A(x_mtr, y_mtr)
+   
 # y_mtr.STOP_ACTION_HOLD = "brake"
 # x_mtr.STOP_ACTION_HOLD = "brake"
 
@@ -103,3 +106,4 @@ x_mtr.move_angle(360 * .25)
 # y_mtr.move_angle(360 * 1)
 # x_mtr.move_angle(360 * 1)
 # y_mtr.move_angle(-360 * 1)
+
