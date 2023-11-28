@@ -1,3 +1,5 @@
+import time
+
 
 class SWAN:
     ## Positive x is right
@@ -16,16 +18,20 @@ class SWAN:
     def horizontal(self, x_ratio = default_ratio[0]):
         self.x_mtr.move_angle(x_ratio * self.default_angle, self.default_speed, block = True)
         self.relative_pos[0] += x_ratio
+        time.sleep(0.5)
 
     def vertical(self, y_ratio = default_ratio[1]):
         self.y_mtr.move_angle(y_ratio * self.default_angle, self.default_speed, block = True)
         self.relative_pos[1] += y_ratio
+        time.sleep(0.5)
 
     def diagonal(self, ratio = default_ratio):
         self.x_mtr.move_angle(ratio[0] * self.default_angle, abs(ratio[0]) * self.default_speed, block=False)
         self.y_mtr.move_angle(ratio[1] * self.default_angle, abs(ratio[1]) * self.default_speed, block=True)
         self.relative_pos[0] += ratio[0]
         self.relative_pos[1] += ratio[1]
+        time.sleep(0.5)
+
 
     def assert_reset(self):
         try:
