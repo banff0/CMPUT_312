@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 
-from ev3dev2.motor import LargeMotor, OUTPUT_D, OUTPUT_C
+from ev3dev2.motor import LargeMotor, OUTPUT_D, OUTPUT_C, OUTPUT_B
 
 from ev3dev2.sensor import INPUT_1 
 from ev3dev2.sensor.lego import TouchSensor
@@ -32,6 +32,13 @@ class ArmMotor(LargeMotor):
 
 y_mtr = ArmMotor(OUTPUT_D)
 x_mtr = ArmMotor(OUTPUT_C)
+z_mtr = ArmMotor(OUTPUT_B)
+
+# z_mtr.move_angle(-20, spd=5)
+# time.sleep(1)
+# x_mtr.move_angle(-360 * 0.5, spd=20)
+# z_mtr.move_angle(20, spd=5)
+# y_mtr.move_angle(-360 * 0.5, spd=20)
 
 # x_mtr.move_angle(360 * 1, spd=20, block=True)
 # sleep(1)
@@ -52,68 +59,66 @@ x_mtr = ArmMotor(OUTPUT_C)
 
 
 ### ARC
-dx = 0.05
-dy = 0.0
-num_steps = 20
+# dx = 0.05
+# dy = 0.0
+# num_steps = 20
 
-step = (abs(dx - dy)) / num_steps
+# step = (abs(dx - dy)) / num_steps
 
-for i in range(0, num_steps):
-    if dy > dx:
-        x_ratio = ((100*dx)/(100*dy))
-        y_ratio = 1
-        print(dx, dy, 10 * x_ratio)
-    else:
-        x_ratio = 1
-        y_ratio = ((100*dy)/(100*dx))
-        print(dx, dy, 10 * y_ratio)
-    x_mtr.move_angle(360 * (dx), spd = 10 * x_ratio, block=False)
-    y_mtr.move_angle(360 * (dy), spd = 10 * y_ratio, block=True)
+# for i in range(0, num_steps):
+#     if dy > dx:
+#         x_ratio = ((100*dx)/(100*dy))
+#         y_ratio = 1
+#         print(dx, dy, 10 * x_ratio)
+#     else:
+#         x_ratio = 1
+#         y_ratio = ((100*dy)/(100*dx))
+#         print(dx, dy, 10 * y_ratio)
+#     x_mtr.move_angle(360 * (dx), spd = 10 * x_ratio, block=False)
+#     y_mtr.move_angle(360 * (dy), spd = 10 * y_ratio, block=True)
 
-    dx -= step
-    dy += step
+#     dx -= step
+#     dy += step
 
-dx = 0.0
-dy = 0.05
-num_steps = 20
+# dx = 0.0
+# dy = 0.05
+# num_steps = 20
 
-step = abs(dx - dy) / num_steps
+# step = abs(dx - dy) / num_steps
 
-for i in range(0, 20):
-    if dy > dx:
-        x_ratio = ((100*dx)/(100*dy))
-        y_ratio = 1
-        print(dx, dy, 10 * x_ratio)
-    else:
-        x_ratio = 1
-        y_ratio = ((100*dy)/(100*dx))
-        print(dx, dy, 10 * y_ratio)
-    x_mtr.move_angle(-360 * (dx), spd = 10 * x_ratio, block=False)
-    y_mtr.move_angle(360 * (dy), spd = 10 * y_ratio, block=True)
+# for i in range(0, 20):
+#     if dy > dx:
+#         x_ratio = ((100*dx)/(100*dy))
+#         y_ratio = 1
+#         print(dx, dy, 10 * x_ratio)
+#     else:
+#         x_ratio = 1
+#         y_ratio = ((100*dy)/(100*dx))
+#         print(dx, dy, 10 * y_ratio)
+#     x_mtr.move_angle(-360 * (dx), spd = 10 * x_ratio, block=False)
+#     y_mtr.move_angle(360 * (dy), spd = 10 * y_ratio, block=True)
 
-    dx += step
-    dy -= step
-# x_mtr.move_angle(2*-360)
-#y_mtr.move_angle(2*360)
-# x_mtr.position = 0; y_mtr.position = 0
-# swan = SWAN(x_mtr, y_mtr)
-# try:
-#     # swan.A()
-#     # swan.A()
-#     # swan.E()
-#     # swan.F()
-#     swan.I()
-# except AssertionError:
-#     pass
-# except Exception as e:
-#     traceback.print_exc()
-# finally:
-#     print(x_mtr.position, y_mtr.position)
-#     input("Click Enter to reset")
-#     x_mtr.reset()
-#     y_mtr.reset()
-# y_mtr.STOP_ACTION_HOLD = "brake"
-# x_mtr.STOP_ACTION_HOLD = "brake"
+#     dx += step
+#     dy -= step
+x_mtr.position = 0; y_mtr.position = 0
+swan = SWAN(x_mtr, y_mtr, z_mtr)
+try:
+    swan.A()
+    # swan.A()
+    # swan.E()
+    # swan.F()
+    # swan.I()
+except AssertionError:
+    pass
+except Exception as e:
+    traceback.print_exc()
+finally:
+    print(x_mtr.position, y_mtr.position)
+    input("Click Enter to reset")
+    x_mtr.reset()
+    y_mtr.reset()
+y_mtr.STOP_ACTION_HOLD = "brake"
+x_mtr.STOP_ACTION_HOLD = "brake"
 
 # for i in range(1, 6):
 #     y_mtr.move_angle(-360 * 0.1, spd=15 + i, block=False)

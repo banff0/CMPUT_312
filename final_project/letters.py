@@ -11,9 +11,10 @@ class SWAN:
 
     relative_pos = [0, 0]
 
-    def __init__(self, x_mtr, y_mtr):
+    def __init__(self, x_mtr, y_mtr, z_mtr):
         self.x_mtr = x_mtr
         self.y_mtr = y_mtr
+        self.z_mtr = z_mtr
 
     def horizontal(self, x_ratio = default_ratio[0]):
         self.x_mtr.move_angle(x_ratio * self.default_angle, self.default_speed, block = True)
@@ -32,6 +33,13 @@ class SWAN:
         self.relative_pos[1] += ratio[1]
         time.sleep(0.5)
 
+    def pen_up(self):
+        self.z_mtr.move_angle(-20, spd=5)
+    
+    def pen_down(self):
+        self.z_mtr.move_angle(20, spd=5)
+
+
 
     def assert_reset(self):
         try:
@@ -48,19 +56,24 @@ class SWAN:
         # self.y_mtr.move_angle(2*360, spd=20, block=True)
         ################################
         # Draw the 2 main diagonals
+        self.pen_down()
         self.diagonal((0.5, 2))
         self.diagonal((0.5, -2))
         # Go back up half the most recent diagonal
+        self.pen_up()
         self.diagonal((-0.25, 1))
         # Draw the line in between the diagonals, parallel to x-axis
+        self.pen_down()
         self.horizontal(-0.5)
 
         # Get back to starting pos
+        self.pen_up()
         self.diagonal((-0.25, -1))
         self.assert_reset()
         
 
     def E(self):
+        self.pen_down()
         self.horizontal(1)
         self.horizontal(-1)
         self.F()  # F takes care of asserting that we're back at starting position
