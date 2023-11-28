@@ -19,7 +19,7 @@ class SWAN:
         self.max_letters_per_line = max_letters_per_line
         self.line_letters = 0
 
-        self.str_to_letter = {'a': self.A, 'e': self.E, "i": self.I, "t": self.T, "f": self.F, " ": self.space, "\n": self.next_line}
+        self.str_to_letter = {'a': self.A, 'e': self.E, "i": self.I, "t": self.T, "f": self.F, " ": self.space, "\n": self.next_line, "n": self.N}
 
     def horizontal(self, x_ratio = default_ratio[0]):
         self.x_mtr.move_angle(x_ratio * self.default_angle, self.default_speed, block = True)
@@ -92,6 +92,7 @@ class SWAN:
 
 
     def write_str(self, str):
+        print(str)
         for i in str.lower():
             print(i)
             self.str_to_letter[i]()
@@ -172,3 +173,9 @@ class SWAN:
         self.draw_horizontal(-1)
         # go back to start
         self.move_vertical(-2)
+
+    def N(self):
+        self.draw_vertical(2)
+        self.draw_diagonal([1, -2])
+        self.draw_vertical(2)
+        self.move_diagonal([-1, -2])

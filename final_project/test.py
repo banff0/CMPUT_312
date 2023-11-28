@@ -59,7 +59,7 @@ z_mtr = ArmMotor(OUTPUT_B)
 
 
 ### ARC
-z_mtr.move_angle(-20, spd=5)
+# z_mtr.move_angle(-20, spd=5)
 # dx = 0.05
 # dy = 0.0
 # num_steps = 20
@@ -151,4 +151,30 @@ z_mtr.move_angle(-20, spd=5)
 # y_mtr.move_angle(360 * 1)
 # x_mtr.move_angle(360 * 1)
 # y_mtr.move_angle(-360 * 1)
+
+def main():
+    x_mtr.position = 0; y_mtr.position = 0
+    swan = SWAN(x_mtr, y_mtr, z_mtr)
+    try:
+        swan.write_str("N")
+        # swan.F()
+        # swan.next_letter()
+        # swan.A()
+        # swan.next_line()
+        # swan.E()
+        # swan.F()
+        # swan.I()
+    except AssertionError:
+        pass
+    except Exception as e:
+        traceback.print_exc()
+    finally:
+        print(x_mtr.position, y_mtr.position)
+        input("Click Enter to reset")
+        x_mtr.reset()
+        y_mtr.reset()
+    y_mtr.STOP_ACTION_HOLD = "brake"
+    x_mtr.STOP_ACTION_HOLD = "brake"
+
+main()
 
