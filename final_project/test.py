@@ -59,6 +59,7 @@ z_mtr = ArmMotor(OUTPUT_B)
 
 
 ### ARC
+z_mtr.move_angle(-20, spd=5)
 # dx = 0.05
 # dy = 0.0
 # num_steps = 20
@@ -100,25 +101,30 @@ z_mtr = ArmMotor(OUTPUT_B)
 
 #     dx += step
 #     dy -= step
-x_mtr.position = 0; y_mtr.position = 0
-swan = SWAN(x_mtr, y_mtr, z_mtr)
-try:
-    swan.A()
-    # swan.A()
-    # swan.E()
-    # swan.F()
-    # swan.I()
-except AssertionError:
-    pass
-except Exception as e:
-    traceback.print_exc()
-finally:
-    print(x_mtr.position, y_mtr.position)
-    input("Click Enter to reset")
-    x_mtr.reset()
-    y_mtr.reset()
-y_mtr.STOP_ACTION_HOLD = "brake"
-x_mtr.STOP_ACTION_HOLD = "brake"
+
+# y_mtr.move_angle(-360*0.5)
+# x_mtr.position = 0; y_mtr.position = 0
+# swan = SWAN(x_mtr, y_mtr, z_mtr)
+# try:
+#     swan.write_str("EAT\nIT")
+#     # swan.F()
+#     # swan.next_letter()
+#     # swan.A()
+#     # swan.next_line()
+#     # swan.E()
+#     # swan.F()
+#     # swan.I()
+# except AssertionError:
+#     pass
+# except Exception as e:
+#     traceback.print_exc()
+# finally:
+#     print(x_mtr.position, y_mtr.position)
+#     input("Click Enter to reset")
+#     x_mtr.reset()
+#     y_mtr.reset()
+# y_mtr.STOP_ACTION_HOLD = "brake"
+# x_mtr.STOP_ACTION_HOLD = "brake"
 
 # for i in range(1, 6):
 #     y_mtr.move_angle(-360 * 0.1, spd=15 + i, block=False)

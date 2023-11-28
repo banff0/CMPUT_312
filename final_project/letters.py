@@ -11,10 +11,15 @@ class SWAN:
 
     relative_pos = [0, 0]
 
-    def __init__(self, x_mtr, y_mtr, z_mtr):
+    def __init__(self, x_mtr, y_mtr, z_mtr, max_letters_per_line = 5):
         self.x_mtr = x_mtr
         self.y_mtr = y_mtr
         self.z_mtr = z_mtr
+        self.pen_pos_up = True
+        self.max_letters_per_line = max_letters_per_line
+        self.line_letters = 0
+
+        self.str_to_letter = {'a': self.A, 'e': self.E, "i": self.I, "t": self.T, "f": self.F, " ": self.space, "\n": self.next_line}
 
     def horizontal(self, x_ratio = default_ratio[0]):
         self.x_mtr.move_angle(x_ratio * self.default_angle, self.default_speed, block = True)
@@ -33,12 +38,65 @@ class SWAN:
         self.relative_pos[1] += ratio[1]
         time.sleep(0.5)
 
+    # move and draw with pen down
+    def draw_horizontal(self, x_ratio = default_ratio[0]):
+        self.pen_down()
+        self.horizontal(x_ratio)
+    #move without drawing, with pen up
+    def move_horizontal(self, x_ratio = default_ratio[0]):
+        self.pen_up()
+        self.horizontal(x_ratio)
+    
+    # move and draw with pen down
+    def draw_vertical(self, y_ratio = default_ratio[1]):
+        self.pen_down()
+        self.vertical(y_ratio)
+    #move without drawing, with pen up
+    def move_vertical(self, y_ratio = default_ratio[1]):
+        self.pen_up()
+        self.vertical(y_ratio)
+    
+    # move and draw with pen down
+    def draw_diagonal(self, ratio = default_ratio):
+        self.pen_down()
+        self.diagonal(ratio)
+    #move without drawing, with pen up
+    def move_diagonal(self, ratio = default_ratio):
+        self.pen_up()
+        self.diagonal(ratio)
+
     def pen_up(self):
-        self.z_mtr.move_angle(-20, spd=5)
+        if not self.pen_pos_up:
+            self.z_mtr.move_angle(-20, spd=5)
+            self.pen_pos_up = True
     
     def pen_down(self):
-        self.z_mtr.move_angle(20, spd=5)
+        if self.pen_pos_up:
+            self.pen_pos_up = False
+            self.z_mtr.move_angle(20, spd=5)
 
+    def next_letter(self):
+        self.pen_up()
+        self.horizontal(1.25)
+        self.relative_pos == [0, 0]
+        self.line_letters += 1.25
+    
+    def next_line(self):
+        self.pen_up()
+        self.diagonal([-self.line_letters , -2.25])
+        self.relative_pos == [0, 0]
+        self.line_letters = 0
+    
+    def space(self):
+        self.pen_up()
+
+
+    def write_str(self, str):
+        for i in str.lower():
+            print(i)
+            self.str_to_letter[i]()
+            if i != "\n":
+                self.next_letter()
 
 
     def assert_reset(self):
@@ -50,52 +108,67 @@ class SWAN:
     # Start drawing from bottom left corner
 
     def A(self):
-        # self.x_mtr.move_angle(360, block=False)
-        # self.y_mtr.move_angle(2*-360, spd=20, block=True)
-        # self.x_mtr.move_angle(360, block=False)
-        # self.y_mtr.move_angle(2*360, spd=20, block=True)
-        ################################
         # Draw the 2 main diagonals
-        self.pen_down()
-        self.diagonal((0.5, 2))
-        self.diagonal((0.5, -2))
+        # self.pen_down()
+        self.draw_diagonal((0.5, 2))
+        self.draw_diagonal((0.5, -2))
         # Go back up half the most recent diagonal
-        self.pen_up()
-        self.diagonal((-0.25, 1))
+        # self.pen_up()
+        self.move_diagonal((-0.25, 1))
         # Draw the line in between the diagonals, parallel to x-axis
-        self.pen_down()
-        self.horizontal(-0.5)
+        # self.pen_down()
+        self.draw_horizontal(-0.6)
 
         # Get back to starting pos
-        self.pen_up()
-        self.diagonal((-0.25, -1))
+        # self.pen_up()
+        self.move_diagonal((-0.25, -1))
         self.assert_reset()
         
 
     def E(self):
-        self.pen_down()
-        self.horizontal(1)
-        self.horizontal(-1)
+        # self.pen_down()
+        self.draw_horizontal(1)
+        # self.pen_up()
+        self.move_horizontal(-1)
         self.F()  # F takes care of asserting that we're back at starting position
 
     def F(self):
-        for _ in range(2):
-            self.vertical(1)
-            self.horizontal(1)
-            self.horizontal(-1)
+        for i in range(2):
+            # self.pen_down()
+            self.draw_vertical(1)
+            self.draw_horizontal(0.5 + 0.5 * i)
+            # self.pen_up()
+            self.move_horizontal(-0.5 + -0.5 * i)
         # Get back to starting pos
-        self.vertical(-2)
+        # self.pen_up()
+        self.move_vertical(-2)
         self.assert_reset()
 
     def I(self):
-        self.horizontal(1)
-        self.horizontal(-0.5)
-        self.vertical(2)
-        self.horizontal(0.5)
-        self.horizontal(-1)
+        # self.pen_down()
+        self.draw_horizontal(1)
+        # self.pen_up()
+        self.move_horizontal(-0.5)
+        # self.pen_down()
+        self.draw_vertical(2)
+        # self.pen_up()
+        self.move_horizontal(0.5)
+        # self.pen_down()
+        self.draw_horizontal(-1)
 
         # Get back to starting pos
-        self.horizontal(0.5)
-        self.vertical(-2)
-        self.horizontal(-0.5)
+        # self.pen_down()
+        self.move_vertical(-2)
         self.assert_reset()
+    
+    def T(self):
+        # go to middle of T
+        self.move_horizontal(0.5)
+        # draw vertical line up
+        self.draw_vertical(2)
+        # go to start of horizontal line
+        self.move_horizontal(0.5)
+        # draw top line
+        self.draw_horizontal(-1)
+        # go back to start
+        self.move_vertical(-2)
