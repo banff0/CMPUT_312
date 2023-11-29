@@ -23,8 +23,10 @@ class SWAN:
 
         #self.str_to_letter = {'a': self.A, 'e': self.E, "i": self.I, "t": self.T, "f": self.F, " ": self.space, "\n": self.next_line, "n": self.N}
         self.str_to_letter = {' ': self.space, '\n': self.next_line}
-        for char in self.ALLOWED_LETTERS:
-            self.str_to_letter[char] = eval(f'self.{char}')
+        for letter in self.ALLOWED_LETTERS:
+            # If function to draw this character has been implemented, add it to self.str_to_letter
+            if hasattr(self, letter):
+                self.str_to_letter[letter] = eval(f'self.{letter}')
 
     def horizontal(self, x_ratio = default_ratio[0]):
         self.x_mtr.move_angle(x_ratio * self.default_angle, self.default_speed, block = True)
