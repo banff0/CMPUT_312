@@ -1,7 +1,9 @@
 import time
-
+from string import ascii_uppercase
 
 class SWAN:
+    ALLOWED_LETTERS = ascii_uppercase
+
     ## Positive x is right
     ## Positive y: (tray moves down, pen draws up)
     ## 360 degrees is ~1.9 cm
@@ -19,7 +21,10 @@ class SWAN:
         self.max_letters_per_line = max_letters_per_line
         self.line_letters = 0
 
-        self.str_to_letter = {'a': self.A, 'e': self.E, "i": self.I, "t": self.T, "f": self.F, " ": self.space, "\n": self.next_line, "n": self.N}
+        #self.str_to_letter = {'a': self.A, 'e': self.E, "i": self.I, "t": self.T, "f": self.F, " ": self.space, "\n": self.next_line, "n": self.N}
+        self.str_to_letter = {' ': self.space, '\n': self.next_line}
+        for char in self.ALLOWED_LETTERS:
+            self.str_to_letter[char] = eval(f'self.{char}')
 
     def horizontal(self, x_ratio = default_ratio[0]):
         self.x_mtr.move_angle(x_ratio * self.default_angle, self.default_speed, block = True)
@@ -72,8 +77,8 @@ class SWAN:
     
     def pen_down(self):
         if self.pen_pos_up:
-            self.pen_pos_up = False
             self.z_mtr.move_angle(20, spd=5)
+            self.pen_pos_up = False
 
     def next_letter(self):
         self.pen_up()
@@ -93,9 +98,11 @@ class SWAN:
 
     def write_str(self, str):
         print(str)
-        for i in str.lower():
+        for i in str.upper():
+            ## I changed this to upper. See creation of self.str_to_letter above.
             print(i)
             self.str_to_letter[i]()
+            #### Need to make sure we have not reached the end of the page
             if i != "\n":
                 self.next_letter()
 
@@ -118,13 +125,12 @@ class SWAN:
         self.move_diagonal((-0.25, 1))
         # Draw the line in between the diagonals, parallel to x-axis
         # self.pen_down()
-        self.draw_horizontal(-0.6)
+        self.draw_horizontal(-0.5)
 
         # Get back to starting pos
         # self.pen_up()
         self.move_diagonal((-0.25, -1))
         self.assert_reset()
-        
 
     def E(self):
         # self.pen_down()
@@ -139,10 +145,23 @@ class SWAN:
             self.draw_vertical(1)
             self.draw_horizontal(0.5 + 0.5 * i)
             # self.pen_up()
-            self.move_horizontal(-0.5 + -0.5 * i)
+            self.move_horizontal(-(0.5 + 0.5 * i))
         # Get back to starting pos
         # self.pen_up()
         self.move_vertical(-2)
+        self.assert_reset()
+
+    def H(self):
+        ## UNTESTED
+        # Draw 2 sides of H
+        self.draw_vertical(2)
+        self.move_horizontal(1)
+        self.draw_vertical(-2)
+        # Draw the line in between
+        self.move_vertical(1)
+        self.draw_horizontal(-1)
+
+        self.move_vertical(-1)
         self.assert_reset()
 
     def I(self):
@@ -161,6 +180,46 @@ class SWAN:
         # self.pen_down()
         self.move_vertical(-2)
         self.assert_reset()
+
+    def K(self):
+        ## UNTESTED
+        self.draw_vertical(2)
+        self.move_vertical(-1)
+
+        self.draw_diagonal((1, 1))
+        self.move_diagonal((-1, -1))
+        self.draw_diagonal((1, -1))
+
+        self.move_horizontal(-1)
+        self.assert_reset()
+
+    def L(self):
+        ## UNTESTED
+        self.draw_vertical(2)
+        self.move_vertical(-2)
+        self.draw_horizontal(1)
+
+        self.move_horizontal(-1)
+        self.assert_reset()
+    
+    def M(self):
+        ## UNTESTED
+        self.draw_vertical(2)
+        self.draw_diagonal((0.5, -1))
+        self.draw_diagonal((0.5, 1))
+        self.draw_vertical(-2)
+
+        self.move_horizontal(-1)
+        self.assert_reset()
+
+    def N(self):
+        ## UNTESTED
+        self.draw_vertical(2)
+        self.draw_diagonal([1, -2])
+        self.draw_vertical(2)
+
+        self.move_diagonal([-1, -2])
+        self.assert_reset()
     
     def T(self):
         # go to middle of T
@@ -174,8 +233,54 @@ class SWAN:
         # go back to start
         self.move_vertical(-2)
 
-    def N(self):
+        self.assert_reset()
+
+    def V(self):
+        ## UNTESTED
+        self.move_vertical(2)
+        self.draw_diagonal((0.5, -2))
+        self.draw_diagonal((0.5, 2))
+
+        self.move_diagonal((-1, -2))
+        self.assert_reset()
+
+    def W(self):
+        ## UNTESTED
+        self.move_vertical(2)
+        self.draw_vertical(-2)
+        self.draw_diagonal((0.5, 1))
+        self.draw_diagonal((0.5, -1))
         self.draw_vertical(2)
-        self.draw_diagonal([1, -2])
-        self.draw_vertical(2)
-        self.move_diagonal([-1, -2])
+
+        self.move_diagonal((-1, -2))
+        self.assert_reset()
+    
+    def X(self):
+        ## UNTESTED
+        self.draw_diagonal((1, 2))
+        self.move_horizontal(-1)
+        self.draw_diagonal((1, -2))
+
+        self.move_horizontal(-1)
+        self.assert_reset()
+    
+    def Y(self):
+        ## UNTESTED
+        self.move_horizontal(0.5)
+        self.draw_vertical(1)
+        self.draw_diagonal((0.5, 1))
+        self.move_horizontal(-1)
+        self.draw_diagonal((0.5, -1))
+
+        self.move_diagonal((-0.5, -1))
+        self.assert_reset()
+    
+    def Z(self):
+        ## UNTESTED
+        self.move_vertical(2)
+        self.draw_horizontal(2)
+        self.draw_diagonal((-1, -2))
+        self.draw_horizontal(2)
+        
+        self.move_horizontal(-2)
+        self.assert_reset()

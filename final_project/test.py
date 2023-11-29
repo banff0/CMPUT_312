@@ -9,7 +9,7 @@ from ev3dev2.button import Button
 from math import cos, sin, radians, degrees, sqrt, acos
 from time import sleep
 
-from letters import *
+from letters import SWAN
 import traceback
 
 class ArmMotor(LargeMotor):
@@ -166,7 +166,7 @@ def main():
         # swan.I()
     except AssertionError:
         pass
-    except Exception as e:
+    except Exception:
         traceback.print_exc()
     finally:
         print(x_mtr.position, y_mtr.position)
