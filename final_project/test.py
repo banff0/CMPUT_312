@@ -31,8 +31,8 @@ class ArmMotor(LargeMotor):
     
 
 y_mtr = ArmMotor(OUTPUT_D)
-x_mtr = ArmMotor(OUTPUT_C)
-z_mtr = ArmMotor(OUTPUT_B)
+x_mtr = ArmMotor(OUTPUT_B)
+z_mtr = ArmMotor(OUTPUT_C)
 
 # z_mtr.move_angle(-20, spd=5)
 # time.sleep(1)
@@ -156,7 +156,10 @@ def main():
     x_mtr.position = 0; y_mtr.position = 0
     swan = SWAN(x_mtr, y_mtr, z_mtr)
     try:
-        swan.write_str("N")
+        swan.write_str("OB")
+        # for i in range(1, 5):
+        #     swan.quarter_ellipse((1, 1), i)
+        #     sleep(2)
         # swan.F()
         # swan.next_letter()
         # swan.A()
@@ -164,11 +167,55 @@ def main():
         # swan.E()
         # swan.F()
         # swan.I()
+
+        # num_steps = 10
+        # dx = 2/(num_steps+1)
+        # dy = 0.0
+
+        # step = 2 / ((num_steps)*(num_steps+1)) #(abs(dx - dy)) / num_steps
+
+        # for i in range(0, num_steps+1):
+        #     if dy > dx:
+        #         x_ratio = ((100*dx)/(100*dy))
+        #         y_ratio = 1
+        #         print(360*dx, 360*dy, 30 * x_ratio)
+        #     else:
+        #         x_ratio = 1
+        #         y_ratio = ((100*dy)/(100*dx))
+        #         print(360*dx, 360*dy, 30 * y_ratio)
+        #     x_mtr.move_angle(0.5 * 360 * (dx), spd = 0.5 * 10 * x_ratio, block=False)
+        #     y_mtr.move_angle(360 * (dy), spd = 10 * y_ratio, block=True)
+
+        #     dx -= step
+        #     dy += step
+        
+        # num_steps = 20
+        # dx = 0.0
+        # dy = 2/(num_steps+1)
+
+        # step = 2 / ((num_steps)*(num_steps + 1)) #(abs(dx - dy)) / num_steps
+
+        # for i in range(0, num_steps+1):
+        #     if dy > dx:
+        #         x_ratio = ((100*dx)/(100*dy))
+        #         y_ratio = 1
+        #         print(dx, dy, 10 * x_ratio)
+        #     else:
+        #         x_ratio = 1
+        #         y_ratio = ((100*dy)/(100*dx))
+        #         print(dx, dy, 10 * y_ratio)
+        #     x_mtr.move_angle(0.5 * -360 * (dx), spd = 0.5 * 10 * x_ratio, block=False)
+        #     y_mtr.move_angle(360 * (dy), spd = 10 * y_ratio, block=True)
+
+        #     dx += step
+        #     dy -= step
+
     except AssertionError:
         pass
     except Exception:
         traceback.print_exc()
     finally:
+        sleep(1)
         print(x_mtr.position, y_mtr.position)
         input("Click Enter to reset")
         x_mtr.reset()
