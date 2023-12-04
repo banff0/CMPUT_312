@@ -156,7 +156,14 @@ def main():
     x_mtr.position = 0; y_mtr.position = 0
     swan = SWAN(x_mtr, y_mtr, z_mtr)
     try:
-        swan.write_str("OB")
+        swan.write_str("BOS")
+        # for i in range(4):
+        #     sleep(1)
+        #     swan.quarter_ellipse((0.5,1), i+1)
+        #     sleep(1)
+        # swan.pen_up()
+        # swan.draw_horizontal(-1)
+        # swan.draw_vertical(1)
         # for i in range(1, 5):
         #     swan.quarter_ellipse((1, 1), i)
         #     sleep(2)
