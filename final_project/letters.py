@@ -1,5 +1,6 @@
 import time
 from string import ascii_uppercase
+from math import sin, cos, pi
 
 class SWAN:
     ALLOWED_LETTERS = ascii_uppercase
@@ -7,21 +8,30 @@ class SWAN:
     ## Positive x is right
     ## Positive y: (tray moves down, pen draws up)
     ## 360 degrees is ~1.9 cm
-    default_angle = 360
     default_speed = 10
     default_ratio = (1, 1)  # Ratio of x-distance to y-distance
+    default_x_unit = 1  # How wide a letter is in terms of (default_angle)*font_size
+    default_y_unit = 2
+    
+    max_font_size = 5
 
     relative_pos = [0, 0]
 
-    def __init__(self, x_mtr, y_mtr, z_mtr, max_letters_per_line = 5):
+    def __init__(self, x_mtr, y_mtr, z_mtr, font):
+        try:
+            assert font > 0 and font <= self.max_font_size
+        except:
+            print("Please enter a valid font in the range [1, 6]")
         self.x_mtr = x_mtr
         self.y_mtr = y_mtr
         self.z_mtr = z_mtr
         self.pen_pos_up = True
-        self.max_letters_per_line = max_letters_per_line
+        # Temporarily
+        self.max_letters_per_line = 8 if font <= 2 else 4
         self.line_letters = 0
+        # max_font_size corresponds to 1 full rotation of either motors
+        self.default_angle = (font+1) * 360 / (self.max_font_size + 1)
 
-        #self.str_to_letter = {'a': self.A, 'e': self.E, "i": self.I, "t": self.T, "f": self.F, " ": self.space, "\n": self.next_line, "n": self.N}
         self.str_to_letter = {' ': self.space, '\n': self.next_line}
         for letter in self.ALLOWED_LETTERS:
             # If function to draw this character has been implemented, add it to self.str_to_letter
@@ -44,93 +54,94 @@ class SWAN:
         self.relative_pos[0] += ratio[0]
         self.relative_pos[1] += ratio[1]
         time.sleep(0.5)
-    
-    def quarter_ellipse(self, ratio, quadrant):
-        # We always move anticlockwise
 
-        self.pen_down()
-        time.sleep(0.5)
+    def quarter_ellipse(self, ratio, rotation = 'ccw'):
         try:
-            assert quadrant >= 1 and quadrant <= 4
-        except AssertionError:
-            print("Make sure you enter a valid quadrant")
+            # Make sure a valid rotational direction was entered
+            rotation = rotation.lower()
+            assert len(rotation) > 0 and rotation in ['cw', 'ccw']
+        except:
+            print("Make sure you enter a correct rotational direction (cw, ccw)")
+        self.x_mtr.stop_action_hold = 'coast'
+        self.y_mtr.stop_action_hold = 'coast'
+        self.pen_down()
 
-        self.x_mtr.STOP_ACTION_HOLD = 'hold'
-        self.y_mtr.STOP_ACTION_HOLD = 'hold'
+        # Minimum of 2 steps to avoid division by zero
+        ##################
+        num_steps = 20
+        theta_step = pi / (2*(num_steps-1))
+        x_func, y_func = cos, sin
+        if rotation == 'cw':
+            x_func, y_func = sin, cos
+        if (abs(ratio[0]) / ratio[0]) != (abs(ratio[1]) / ratio[1]):
+            x_func, y_func = y_func, x_func
+        x_steps = [x_func(step*theta_step) for step in range(num_steps)]
+        y_steps = [y_func(step*theta_step) for step in range(num_steps)]
         
-        num_steps = 30
-        dx = 2/(num_steps+1)
-        dy = 0.0
-        if quadrant % 2 == 1:
-            dx, dy = dy, dx
-
-        x_sign, y_sign = -1, 1
-        if quadrant == 2:
-            y_sign = -y_sign
-        elif quadrant == 3:
-            x_sign, y_sign = y_sign, x_sign
-        elif quadrant == 4:
-            x_sign = -x_sign
-            
-        step = 2 / ((num_steps)*(num_steps+1)) #(abs(dx - dy)) / num_steps
-
-        for i in range(0, num_steps+1):
-            # if i == num_steps:
-            #     self.x_mtr.STOP_ACTION_HOLD = 'brake'
-            #     self.y_mtr.STOP_ACTION_HOLD = 'brake'
-
-            if dy > dx:
-                # x_ratio = ((100*abs(ratio[0])*dx)/(100*abs(ratio[1])*dy))
-                x_ratio = ((dx)/(dy))
-                y_ratio = 1
-                print(360*dx, 360*dy, 20 * x_ratio)
-            else:
-                x_ratio = 1
-                y_ratio = ((dy)/(dx))
-                # y_ratio = ((100*abs(ratio[1])*dy)/(100*abs(ratio[0])*dx))
-                print(360*dx, 360*dy, 20 * y_ratio)
-            
-            self.x_mtr.move_angle(abs(ratio[0]) * x_sign * 360 * (dx), spd = abs(ratio[0]) * 20 * x_ratio, block=False)
-            self.y_mtr.move_angle(abs(ratio[1]) * y_sign * 360 * (dy), spd = abs(ratio[1]) * 20 * y_ratio, block=True)
-            
-            if quadrant % 2 == 0:
-                dx -= step
-                dy += step
-            else:
-                dx += step
-                dy -= step
+        for i in range(num_steps):
+            self.x_mtr.move_angle(ratio[0] * theta_step * x_steps[i] * self.default_angle, abs(ratio[0]) * x_steps[i] * self.default_speed * 3, block=False)
+            self.y_mtr.move_angle(ratio[1] * theta_step * y_steps[i] * self.default_angle, abs(ratio[1]) * y_steps[i] * self.default_speed * 3, block=True)
+            print("Angles:", ratio[0] * theta_step * x_steps[i] * self.default_angle, ratio[1] * theta_step * y_steps[i] * self.default_angle)
+            print("Speeds:", abs(ratio[0]) * x_steps[i] * self.default_speed, abs(ratio[1]) * y_steps[i] * self.default_speed)
         
-        self.relative_pos[0] += x_sign * ratio[0]
-        self.relative_pos[1] += y_sign * ratio[1]
-        self.x_mtr.STOP_ACTION_HOLD = 'brake'
-        self.y_mtr.STOP_ACTION_HOLD = 'brake'
+        self.x_mtr.stop_action_hold = 'brake'
+        self.y_mtr.stop_action_hold = 'brake'
+        self.relative_pos[0] += ratio[0]
+        self.relative_pos[1] += ratio[1]
         time.sleep(0.5)
     
     ### NOTE: the ratios in these functions (including quarter_ellipse) are only for 
-    ### distance, they do not include direction.
-    def semi_ellipse(self, direction, ratio):
+    ### distance, they do not include rotational direction.
+    def semi_ellipse(self, direction, ratio, rotation='ccw'):
+        # Semi-ellipse
         try:
-            assert type(direction) == str and len(direction) > 0 and direction[0] in 'uldr'
+            # Make sure a valid direction was entered
             direction = direction.lower()
+            assert len(direction) > 0 and direction[0] in 'uldr'
         except:
-            print("Make sure you enter a correct direction")
+            print("Make sure you enter a correct direction (uldr)")
+        try:
+            # Make sure a valid rotational direction was entered
+            rotation = rotation.lower()
+            assert len(rotation) > 0 and rotation in ['cw', 'ccw']
+        except:
+            print("Make sure you enter a correct rotational direction (cw, ccw)")
+    
+        ratio = [abs(ratio[0]), abs(ratio[1])]
+
         if direction[0] == 'u':
             ratio[0] /= 2
-            self.quarter_ellipse(ratio, 3)
-            self.quarter_ellipse(ratio, 4)
+            if rotation == 'ccw':
+                self.quarter_ellipse([ratio[0], -ratio[1]])
+                self.quarter_ellipse([ratio[0], ratio[1]])
+            else:
+                self.quarter_ellipse([-ratio[0], -ratio[1]], rotation)
+                self.quarter_ellipse([-ratio[0], ratio[1]], rotation)
         elif direction[0] == 'l':
             ratio[1] /= 2
-            self.quarter_ellipse(ratio, 4)
-            self.quarter_ellipse(ratio, 1)
+            if rotation == 'ccw':
+                self.quarter_ellipse([ratio[0], ratio[1]])
+                self.quarter_ellipse([-ratio[0], ratio[1]])
+            else:
+                self.quarter_ellipse([ratio[0], -ratio[1]], rotation)
+                self.quarter_ellipse([-ratio[0], -ratio[1]], rotation)
         elif direction[0] == 'd':
             ratio[0] /= 2
-            self.quarter_ellipse(ratio, 1)
-            self.quarter_ellipse(ratio, 2)
+            if rotation == 'ccw':
+                self.quarter_ellipse([-ratio[0], ratio[1]])
+                self.quarter_ellipse([-ratio[0], -ratio[1]])
+            else:
+                self.quarter_ellipse([ratio[0], ratio[1]], rotation)
+                self.quarter_ellipse([ratio[0], -ratio[1]], rotation)
         else:
             # Right
             ratio[1] /= 2 
-            self.quarter_ellipse(ratio, 2)
-            self.quarter_ellipse(ratio, 3)
+            if rotation == 'ccw':
+                self.quarter_ellipse([-ratio[0], -ratio[1]])
+                self.quarter_ellipse([ratio[0], -ratio[1]])
+            else:
+                self.quarter_ellipse([-ratio[0], ratio[1]], rotation)
+                self.quarter_ellipse([ratio[0], ratio[1]], rotation)
 
     # move and draw with pen down
     def draw_horizontal(self, x_ratio = default_ratio[0]):
@@ -184,41 +195,60 @@ class SWAN:
     def space(self):
         self.pen_up()
 
-
     def write_str(self, str):
         print(str)
         for i in str.upper():
             ## I changed this to upper. See creation of self.str_to_letter above.
-            print(i)
+            init_pos = [self.x_mtr.position, self.y_mtr.position]
+            print(i, *init_pos)
             self.str_to_letter[i]()
+            print("end", {i}, self.x_mtr.position - init_pos[0], self.y_mtr.position - init_pos[1])
+            self.correct_position(init_pos)
+
             #### Need to make sure we have not reached the end of the page
             if i != "\n":
                 self.next_letter()
-
 
     def assert_reset(self):
         try:
             assert self.relative_pos == [0, 0]
         except AssertionError:
             print("Make sure you get back to starting position!")
+    
+    def get_init_pos(self):
+        return [self.x_mtr.position, self.y_mtr.position]
+    
+    def correct_position(self, init_pos):
+        pos_diff = [init_pos[0] - self.x_mtr.position, init_pos[1] - self.y_mtr.position]
+        assert pos_diff[0] < 50 and pos_diff[1] < 50
+        
+        rx, ry = 1, 1
+        if pos_diff[0] != 0 and pos_diff[1] != 0:
+            if pos_diff[0] > pos_diff[1]:
+                ry = pos_diff[1]/pos_diff[0]
+            else:
+                rx = pos_diff[0]/pos_diff[1]
+        self.x_mtr.move_angle(pos_diff[0], spd = min(rx * self.default_speed, 100), block=False)
+        self.y_mtr.move_angle(pos_diff[1], spd = min(ry * self.default_speed, 100), block=True)
+
 
     # Start drawing from bottom left corner
 
     def A(self):
         # Draw the 2 main diagonals
         # self.pen_down()
-        self.draw_diagonal((0.5, 2))
-        self.draw_diagonal((0.5, -2))
+        self.draw_diagonal((self.default_x_unit / 2, self.default_y_unit))
+        self.draw_diagonal((self.default_x_unit / 2, -self.default_y_unit))
         # Go back up half the most recent diagonal
         # self.pen_up()
-        self.move_diagonal((-0.25, 1))
+        self.move_diagonal((-self.default_x_unit / 4, self.default_y_unit / 2))
         # Draw the line in between the diagonals, parallel to x-axis
         # self.pen_down()
-        self.draw_horizontal(-0.5)
+        self.draw_horizontal(-self.default_x_unit / 2)
 
         # Get back to starting pos
         # self.pen_up()
-        self.move_diagonal((-0.25, -1))
+        self.move_diagonal((-self.default_x_unit / 4, -self.default_y_unit / 2))
         self.assert_reset()
 
     def E(self):
@@ -377,17 +407,22 @@ class SWAN:
     ## Curved letters | Need to test assert_reset with them
     def O(self):
         # Tested, but needs more testing
-        self.move_vertical(1)
-        self.semi_ellipse('u', [1, 1])
-        self.semi_ellipse('d', [1, 1])
-
-        self.move_vertical(-1)
+        self.move_horizontal(0.5)
+        init_pos = self.get_init_pos()
+        print("##", self.x_mtr.position, self.y_mtr.position)
+        self.semi_ellipse('l', [0.5, 2])
+        self.semi_ellipse('r', [0.5, 2])
+        print("##", self.x_mtr.position, self.y_mtr.position)
+        self.correct_position(init_pos)
+        self.move_horizontal(-0.5)
         self.assert_reset()
     
     def B(self):
+        init_pos = self.get_init_pos()
         for _ in range(2):
             self.semi_ellipse('l', [1, 1])
         self.draw_vertical(-2)
+        self.correct_position(init_pos)
         
         self.assert_reset()
     
@@ -423,9 +458,11 @@ class SWAN:
         self.assert_reset()
     
     def P(self):
-        self.move_vertical(1)
-        self.semi_ellipse('l', [1, 1])
-        self.draw_vertical(-2)
+        init_pos = self.get_init_pos()
+        self.draw_vertical(2)
+        self.semi_ellipse('l', [1, 1.25], 'cw')
+        self.move_vertical(-0.75)
+        self.correct_position(init_pos)
         
         self.assert_reset()
     
@@ -438,21 +475,22 @@ class SWAN:
         self.assert_reset()
     
     def R(self):
-        self.P()
-        self.move_horizontal(1)
-        self.draw_diagonal((-1, 1))
+        init_pos = self.get_init_pos()
+        self.draw_vertical(2)
+        self.semi_ellipse('l', [1, 1.25], 'cw')
+        self.draw_diagonal((1, -0.75))
         
-        self.move_vertical(-1)
+        self.move_horizontal(-1)
+        self.correct_position(init_pos)
         self.assert_reset()
     
     def S(self):
         self.draw_horizontal(0.5)
         self.semi_ellipse('l', [0.5, 1])
-        self.move_diagonal((0.5, 1))
-        self.draw_horizontal(-0.5)
-        self.semi_ellipse('r', [0.5, 1])
+        self.semi_ellipse('r', [0.5, 1], 'cw')
+        self.draw_horizontal(0.5)
 
-        self.move_diagonal((-0.5, -1))
+        self.move_diagonal((-1, -2))
         self.assert_reset()
     
     def U(self):
