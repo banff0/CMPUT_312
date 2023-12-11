@@ -5,7 +5,7 @@ import socket
 from utils import ArmMotor
 from ev3dev2.motor import OUTPUT_B, OUTPUT_C, OUTPUT_D
 from utils import ArmMotor
-from letters import SWAN
+from swan import SWAN
 import traceback
 
 # This class handles the client side of communication. It has a set of predefined messages to send to the server as well as functionality to poll and decode data.
@@ -49,18 +49,20 @@ port = 9999
 client = Client(host, port)
 
 while True:
-    msg = client.get_msg()
-
     try:
+        # Wait until a message from the server is received then write it
+        msg = client.get_msg()
         swan.write_str(msg)
-    except AssertionError:
-        traceback.print_exc()
+    except KeyboardInterrupt:
+        print("Finished executing.")
+        break
     except Exception:
         traceback.print_exc()
+        break
     finally:
         print(x_mtr.position, y_mtr.position)
-        # input("Click Enter to reset")
 
+# Reset motors to starting position if an exception occurred (including user stopping execution)
 x_mtr.reset()
 y_mtr.reset()
     
