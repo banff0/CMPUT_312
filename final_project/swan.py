@@ -196,12 +196,14 @@ class SWAN:
 
     def next_letter(self):
         self.pen_up()
+        # 1 for the width of the letter just drawn, 0.25 for spacing
         self.horizontal(1.25)
         self.relative_pos = [0, 0]
         self.line_letters += 1.25
     
     def next_line(self):
         self.pen_up()
+        # 2 for the width of the letter just drawn, 0.25 for spacing
         self.diagonal([-self.line_letters, -2.25])
         self.relative_pos = [0, 0]
         self.line_letters = 0
@@ -246,8 +248,14 @@ class SWAN:
         return [self.x_mtr.position, self.y_mtr.position]
     
     def correct_position(self, init_pos):
-        pos_diff = [init_pos[0] - self.x_mtr.position, init_pos[1] - self.y_mtr.position]
-        assert pos_diff[0] < 50 and pos_diff[1] < 50
+        # Go back to init_pos from current_position if we're slightly off. This
+        # function is only to be used to minimize error in going back to previous 
+        # position NOT to reset position
+        curr_pos = self.get_pos()
+        pos_diff = [init_pos[0] - curr_pos[0], init_pos[1] - curr_pos[1]]
+        
+        # If we're too far from the starting position, there must be something wrong
+        assert abs(pos_diff[0]) < 50 and abs(pos_diff[1]) < 50
         
         rx, ry = 1, 1
         if pos_diff[0] != 0 and pos_diff[1] != 0:
