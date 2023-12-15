@@ -9,29 +9,28 @@ VERBOSE = False
 class PatchEmbeddings(nn.Module):
     def __init__(
         self, 
-        image_size: int,
-        patch_size: int,
-        hidden_size: int,
-        num_channels: int = 3,      # 3 for RGB, 1 for Grayscale
+        image_size,
+        patch_size,
+        hidden_size,
+        num_channels = 3,      # 3 for RGB, 1 for Grayscale
         ):
         super().__init__()
 
+        # set the number of patches
         self.image_size = image_size
         self.patch_size = patch_size
         self.num_channels = num_channels
         self.num_patches = image_size // patch_size
+        # set the size of the patch embeddings
         self.hidden_size = hidden_size
 
-        # self.projection = (image_size**2) / (p**2)
+        # patches
         self.projection = nn.Conv2d(self.num_channels, self.hidden_size, kernel_size=self.patch_size, stride=self.patch_size, bias=False)
 
 
         
 
-    def forward(
-        self, 
-        x: torch.Tensor,
-        ) -> torch.Tensor:
+    def forward(self, x):
         batch_size, num_channels, height, width = x.shape
         if num_channels != self.num_channels:
             raise ValueError(
@@ -61,14 +60,9 @@ class PositionEmbedding(nn.Module):
         self.position_embeddings = nn.Parameter(torch.randn(1, 1+num_patches**2, hidden_size))
 
 
-    def forward(
-        self,
-        embeddings: torch.Tensor
-        ) -> torch.Tensor:
+    def forward(self,embeddings):
 
         # Concatenate [CLS] token with embedded patch tokens
-        
-
         cls_token = self.cls_token.repeat(embeddings.shape[0], 1, 1)
         embeddings = torch.cat([cls_token, embeddings], dim=1)
 
@@ -78,6 +72,7 @@ class PositionEmbedding(nn.Module):
         return embeddings
 
 class GELU(nn.Module):
+    # Gelu activation function
     def forward(self, x: torch.Tensor):
         return x * torch.sigmoid(1.702 * x)
 

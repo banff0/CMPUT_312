@@ -32,7 +32,7 @@ class LetterDetection():
 
         # load the pre-trained CNN model
         self.CNN_model = CNN(1, self.num_classes)
-        weights = torch.load(f"..\\EMNIST{self.split}_CNN_no_rot.pt")
+        weights = torch.load(f"saved_models/EMNIST{self.split}_CNN_no_rot.pt")
         self.CNN_model.load_state_dict(weights["model"])
         print(f"Validation accuracy of the loaded model is : {weights['acc']}")
         self.CNN_model.eval()
@@ -41,7 +41,7 @@ class LetterDetection():
         self.vit_model = ViT(image_size=self.image_size, patch_size=self.patch_size, num_channels=self.in_channels, hidden_size=self.hidden_size, layers=self.layers, heads=self.heads)
         self.classifier_model = ClassificationHead(hidden_size=self.vit_model.hidden_size, num_classes=self.num_classes)
 
-        checkpoint = torch.load("..\\vit_classifier_EMNIST_balanced.pt")
+        checkpoint = torch.load("saved_models/vit_classifier_EMNIST_balanced.pt")
         if self.verbose: print(checkpoint["classifier"]["classifier.weight"].shape)
         self.vit_model.load_state_dict(checkpoint["vit"])
         self.classifier_model.load_state_dict(checkpoint["classifier"])
