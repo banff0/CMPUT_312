@@ -15,9 +15,6 @@ class PatchEmbeddings(nn.Module):
         num_channels: int = 3,      # 3 for RGB, 1 for Grayscale
         ):
         super().__init__()
-        # #########################
-        # Finish Your Code HERE
-        # #########################
 
         self.image_size = image_size
         self.patch_size = patch_size
@@ -27,10 +24,6 @@ class PatchEmbeddings(nn.Module):
 
         # self.projection = (image_size**2) / (p**2)
         self.projection = nn.Conv2d(self.num_channels, self.hidden_size, kernel_size=self.patch_size, stride=self.patch_size, bias=False)
-        
-        # #########################
-
-        
 
     def forward(
         self, 
@@ -41,10 +34,6 @@ class PatchEmbeddings(nn.Module):
             raise ValueError(
                 "Make sure that the channel dimension of the pixel values match with the one set in the configuration."
             )
-        
-        # #########################
-        # Finish Your Code HERE
-        # #########################
 
         # Calculate Patch Embeddings, then flatten into
         # batched 1D sequence (batch_size, seq_length, hidden_size)
@@ -52,7 +41,7 @@ class PatchEmbeddings(nn.Module):
         embeddings = torch.flatten(embeddings, 2).view(-1, self.num_patches**2, self.hidden_size)
 
         if VERBOSE: print(f"PatchEmbeddings out: {embeddings.shape}, expected ({batch_size}, {self.num_patches**2}, {self.hidden_size})")
-        # #########################
+        
         return embeddings
 
 class PositionEmbedding(nn.Module):
@@ -62,9 +51,6 @@ class PositionEmbedding(nn.Module):
         hidden_size,
         ):
         super().__init__()
-        # #########################
-        # Finish Your Code HERE
-        # #########################
         
         # Specify [CLS] and positional embedding as learnable parameters
 
@@ -72,15 +58,11 @@ class PositionEmbedding(nn.Module):
         self.cls_token = nn.Parameter(torch.randn(1 ,1 , hidden_size))
         self.position_embeddings = nn.Parameter(torch.randn(1, 1+num_patches**2, hidden_size))
 
-        # #########################
 
     def forward(
         self,
         embeddings: torch.Tensor
         ) -> torch.Tensor:
-        # #########################
-        # Finish Your Code HERE
-        # #########################
 
         # Concatenate [CLS] token with embedded patch tokens
         
@@ -89,11 +71,8 @@ class PositionEmbedding(nn.Module):
         embeddings = torch.cat([cls_token, embeddings], dim=1)
 
         # Then add positional encoding to each token
-
-        #################################################################################!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         embeddings += self.position_embeddings
         if VERBOSE: print(f"PositionEmbedding out: {embeddings.shape}")
-        # #########################
         return embeddings
 
 class GELU(nn.Module):
@@ -103,9 +82,6 @@ class GELU(nn.Module):
 class ResidualAttentionBlock(nn.Module):
     def __init__(self, d_model: int, n_head: int):
         super().__init__()
-        # #########################
-        # Finish Your Code HERE
-        # #########################
         self.d_model = d_model
         self.n_head = n_head
 
@@ -120,13 +96,8 @@ class ResidualAttentionBlock(nn.Module):
                 nn.GELU(),
             )
         )
-        # #########################
 
     def forward(self, x: torch.Tensor):
-
-        # #########################
-        # Finish Your Code HERE
-        # #########################
 
         # LayerNorm -> Multi-head Attention
         # Residual connection against x
@@ -140,8 +111,6 @@ class ResidualAttentionBlock(nn.Module):
         out2 = self.res_2(out1)
         out = out2 + x
         if VERBOSE: print(f"ResidualAttentionBlock out: {out.shape}")
-
-        # #########################
 
         return out
 
@@ -171,9 +140,7 @@ class ViT(nn.Module):
         heads: int):
         super().__init__()
         self.hidden_size = hidden_size
-        # #########################
-        # Finish Your Code HERE
-        # #########################
+
         num_patches = image_size // patch_size
         self.patch_embed = PatchEmbeddings(image_size, patch_size, hidden_size, num_channels)
 
@@ -185,13 +152,8 @@ class ViT(nn.Module):
 
         self.ln_post = nn.LazyLinear(hidden_size)
 
-        # #########################
-
 
     def forward(self, x: torch.Tensor):
-        # #########################
-        # Finish Your Code HERE
-        # #########################
         embeddings = self.pos_embed(self.patch_embed(x))
 
         out = self.ln_pre(embeddings)
@@ -202,7 +164,6 @@ class ViT(nn.Module):
 
 
         if VERBOSE: print(f"ViT out: {out.shape}")
-        # #########################
 
         return out
 
@@ -231,22 +192,15 @@ class LinearEmbeddingHead(nn.Module):
         ):
         super().__init__()
         self.embed_size = embed_size
-        # #########################
-        # Finish Your Code HERE
-        # #########################
         self.projection = nn.Linear(hidden_size, embed_size)
-        # #########################
 
     def forward(
         self, 
         feats: torch.Tensor,
         ) -> torch.Tensor:
-        # #########################
-        # Finish Your Code HERE
-        # #########################
         out = self.projection(feats)
         if VERBOSE: print(f"LinearEmbeddingHead out: {out.shape}")
-        # #########################
+
         return out
 
 class Conv(nn.Module):
