@@ -104,19 +104,12 @@ class LetterDetection():
                     letter_img = np.zeros_like(img)
                     # draw the letter onto the blank image
                     cv2.drawContours(letter_img, [boundRects[i][4]], 0, [255, 255, 255], 5)
-                    cv2.drawContours(img, [boundRects[i][4]], 0, [255, 255, 255], 5)
                     # only take the potion of the image with the letter and blur for better model acc
                     letter_img = letter_img[int(boundRects[i][1]):int(boundRects[i][1]+boundRects[i][3]), int(boundRects[i][0]):int(boundRects[i][0]+boundRects[i][2])]
                     letter_img = cv2.blur(letter_img,(5,5))
 
                     # show letter image
                     if self.verbose:
-                        # Used for generating some images for the report
-                        # cv2.imshow("titl", img[int(boundRects[i][1]):int(boundRects[i][1]+boundRects[i][3]), int(boundRects[i][0]):int(boundRects[i][0]+boundRects[i][2])])
-                        # cv2.waitKey(0) 
-                        # cv2.destroyAllWindows()
-                        # cv2.imwrite(f"img_{i}.jpg", img[int(boundRects[i][1]):int(boundRects[i][1]+boundRects[i][3]), int(boundRects[i][0]):int(boundRects[i][0]+boundRects[i][2])]) 
-
                         cv2.imshow("titl", letter_img)
                         cv2.waitKey(0) 
                         cv2.destroyAllWindows()   

@@ -7,6 +7,9 @@ import torch.nn.functional as F
 VERBOSE = False
 
 class PatchEmbeddings(nn.Module):
+    """TODO: (0.5 out of 8) Calculates patch embedding
+    of shape `(batch_size, seq_length, hidden_size)`.
+    """
     def __init__(
         self, 
         image_size: int,
@@ -61,6 +64,9 @@ class PositionEmbedding(nn.Module):
         num_patches,
         hidden_size,
         ):
+        """TODO: (0.5 out of 8) Given patch embeddings, 
+        calculate position embeddings with [CLS] and [POS].
+        """
         super().__init__()
         # #########################
         # Finish Your Code HERE
@@ -101,6 +107,8 @@ class GELU(nn.Module):
         return x * torch.sigmoid(1.702 * x)
 
 class ResidualAttentionBlock(nn.Module):
+    """TODO: (0.25 out of 8) Residual Attention Block.
+    """
     def __init__(self, d_model: int, n_head: int):
         super().__init__()
         # #########################
@@ -161,6 +169,8 @@ class Transformer(nn.Module):
         return x
 
 class ViT(nn.Module):
+    """TODO: (0.5 out of 8) Vision Transformer.
+    """
     def __init__(
         self, 
         image_size: int, 
@@ -224,6 +234,8 @@ class ClassificationHead(nn.Module):
         return out
 
 class LinearEmbeddingHead(nn.Module):
+    """TODO: (0.25 out of 8) Given features from ViT, generate linear embedding vectors.
+    """
     def __init__(
         self, 
         hidden_size: int,
@@ -248,54 +260,3 @@ class LinearEmbeddingHead(nn.Module):
         if VERBOSE: print(f"LinearEmbeddingHead out: {out.shape}")
         # #########################
         return out
-
-class Conv(nn.Module):
-    def __init__(self, input_dim, output_dim):
-        super().__init__()
-        self.net = nn.Sequential(
-        nn.Conv2d(input_dim, output_dim, 2),
-        nn.BatchNorm2d(output_dim),
-        nn.MaxPool2d(2),
-        nn.GELU()
-        )
-    
-    def forward(self, x):
-        return self.net(x)
-    
-class Lin(nn.Module):
-    def __init__(self, output_dim):
-        super().__init__()
-        self.net = nn.Sequential(
-            nn.LazyLinear(output_dim),
-            nn.BatchNorm1d(output_dim),
-            nn.GELU()
-        )
-    
-    def forward(self, x):
-        return self.net(x)
-
-class CNN(nn.Module):
-    def __init__(self, input_dim = 1, num_classes = 47):
-        super().__init__()
-        self.conv_network_dims = [input_dim, 512, 256, 128]
-        self.conv_net = nn.ModuleList([Conv(self.conv_network_dims[i], self.conv_network_dims[i+1]) for i in range(len(self.conv_network_dims) - 1)])
-
-        fc_net_dims = [128, 64]
-        self.fc_net = nn.ModuleList([Lin(fc_net_dims[i]) for i in range(len(fc_net_dims))])
-
-        self.output_layer = nn.Sequential(
-            nn.LazyLinear(num_classes),
-            nn.BatchNorm1d(num_classes),
-            nn.Sigmoid()
-        )
-
-    def forward(self, x):
-        batch = x.shape[0]
-        for layer in self.conv_net:
-            x = layer(x)
-            # print(x.shape)
-        x = x.reshape(batch, -1)
-        # print(x.shape)
-        for layer in self.fc_net:
-            x = layer(x)
-        return self.output_layer(x)
