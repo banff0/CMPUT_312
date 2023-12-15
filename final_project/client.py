@@ -27,22 +27,25 @@ class Client:
     # Sends a message to the server letting it know that the movement of the motors was executed without any inconvenience.
     def sendDone(self):
         self.s.send("DONE".encode("UTF-8"))
-    
+
+    # get the message for the robot to writ
     def get_msg(self):
         msg = self.pollData()
-        # angles = [float(angle) for angle in self.pollData().split(",")]
         self.sendDone()
         return msg
 
 global first_motor, second_motor
 
+# defince which motor is for which axis
 y_mtr = ArmMotor(OUTPUT_D)
 x_mtr = ArmMotor(OUTPUT_B)
 z_mtr = ArmMotor(OUTPUT_C, hold_action = "coast")
-
+# reset motor positions upon init
 x_mtr.position = 0; y_mtr.position = 0
+# instatiate our sentance writer
 swan = SWAN(x_mtr, y_mtr, z_mtr, 2)
 
+# set up the portal to communicate with the server
 # host = "169.254.225.196"
 host = "169.254.79.135"
 port = 9999
